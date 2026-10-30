@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuitarMemo - Luyện Thuộc Lòng & Phản Xạ Hợp Âm Guitar</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        wood: {
+                            50: '#fdf8f3',
+                            100: '#faeee1',
+                            200: '#f4dac2',
+                            300: '#ecc099',
+                            400: '#e29e6d',
+                            500: '#da824b',
+                            600: '#cc6a3e',
+                            700: '#aa5334',
+                            800: '#884430',
+                            900: '#6e3929',
+                            950: '#3b1c13',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: radial-gradient(circle at top, #271c15 0%, #110d0a 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1c1510;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #573e2e;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7c5841;
+        }
+
+        /* 3D Card Flip Animation */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Pulse animation for timer & audio */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+        .strumming {
+            animation: pulse-ring 1s infinite;
+        }
+
+        /* Guitar string vibration subtle effect */
+        .chord-svg-container svg {
+            filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-amber-500 selection:text-slate-950 flex flex-col min-h-screen">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-amber-900/30 bg-[#18120e]/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <!-- Brand -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-700 flex items-center justify-center shadow-lg shadow-amber-600/20">
+                    <i class="fa-solid fa-guitar text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg sm:text-xl tracking-tight text-amber-50 flex items-center gap-2">
+                        GuitarMemo
+                        <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Học Hợp Âm Nhanh</span>
+                    </h1>
+                    <p class="text-xs text-stone-400 hidden sm:block">Luyện phản xạ ký hiệu & thế bấm hợp âm lặp lại thông minh</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="flex flex-wrap items-center bg-[#231a14] p-1 rounded-xl border border-amber-900/40 gap-1">
+                <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 bg-amber-600 text-white shadow">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Luyện Phản Xạ</span>
+                </button>
+                <button onclick="switchTab('progression')" id="tab-progression" class="tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-stone-300 hover:text-white">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Xếp Chuỗi Hợp Âm</span>
+                    <span class="px-1.5 py-0.2 text-[10px] rounded bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold">Mới</span>
+                </button>
+                <button onclick="switchTab('flashcard')" id="tab-flashcard" class="tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-stone-300 hover:text-white">
+                    <i class="fa-solid fa-clone"></i>
+                    <span>Thẻ Ghi Nhớ</span>
+                </button>
+                <button onclick="switchTab('dictionary')" id="tab-dictionary" class="tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-stone-300 hover:text-white">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span>Bảng Tra Cứu</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
+
+        <!-- Category & Filter Bar (Shared between Quiz & Flashcard) -->
+        <section id="filter-bar" class="mb-6 bg-[#1e1611] border border-amber-900/40 rounded-2xl p-4 shadow-xl">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <!-- Chord Set Selection -->
+                <div>
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <label class="text-xs uppercase tracking-wider text-amber-400/80 font-bold">
+                            <i class="fa-solid fa-layer-group mr-1"></i> Nhóm Hợp Âm Cần Học (Có thể chọn nhiều):
+                        </label>
+                        <span id="custom-quiz-banner" class="hidden px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-semibold">
+                            <i class="fa-solid fa-bullseye mr-1"></i> Đang luyện riêng chuỗi hợp âm đã chọn
+                            <button onclick="exitCustomQuizPool()" class="ml-1.5 underline hover:text-white">Thoát</button>
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="toggleCategory('notes')" id="cat-notes" class="cat-chip px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border transition-all flex items-center gap-1.5 bg-amber-500/20 border-amber-500 text-amber-200">
+                            <i class="fa-solid fa-check text-amber-400"></i> 7 Gốc Nhạc Cơ Bản (C, D, E...)
+                        </button>
+                        <button onclick="toggleCategory('basic')" id="cat-basic" class="cat-chip px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border transition-all flex items-center gap-1.5 bg-amber-500/20 border-amber-500 text-amber-200">
+                            <i class="fa-solid fa-check text-amber-400"></i> Trưởng & Thứ Cơ Bản (Am, Dm, Em...)
+                        </button>
+                        <button onclick="toggleCategory('seventh')" id="cat-seventh" class="cat-chip px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border transition-all flex items-center gap-1.5 bg-stone-800/60 border-stone-700 text-stone-400">
+                            <i class="fa-solid fa-plus text-stone-500"></i> Hợp Âm 7 & Màu (G7, Cmaj7, Cadd9...)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sound Toggle & Auto Strum -->
+                <div class="flex items-center gap-3 border-t md:border-t-0 pt-3 md:pt-0 border-stone-800">
+                    <label class="flex items-center gap-2 cursor-pointer select-none bg-[#291e17] px-3 py-2 rounded-xl border border-amber-900/30 hover:border-amber-700/50 transition">
+                        <input type="checkbox" id="auto-audio-toggle" checked class="w-4 h-4 accent-amber-500 rounded">
+                        <span class="text-xs sm:text-sm text-stone-200 font-medium">
+                            <i class="fa-solid fa-volume-high text-amber-400 mr-1"></i> Tự phát tiếng Guitar
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 1: QUIZ / REFLEX MODE ==================== -->
+        <section id="view-quiz" class="space-y-6">
+            <!-- Quiz Settings & Stats Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <!-- Mode Controls -->
+                <div class="lg:col-span-7 bg-[#1e1611] border border-amber-900/40 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs font-semibold text-stone-400 mr-1">Kiểu hỏi:</span>
+                        <select id="quiz-direction" onchange="resetAndNextQuestion()" class="bg-[#2c2018] text-amber-100 text-xs sm:text-sm font-medium px-3 py-2 rounded-xl border border-amber-800/50 focus:outline-none focus:border-amber-500">
+                            <option value="mixed">🔄 Trộn lẫn (C ⇄ Đô, La thứ ⇄ Am)</option>
+                            <option value="sym2name">🔤 Ký hiệu ➔ Tên gọi (Câu: C là ...)</option>
+                            <option value="name2sym">🇻🇳 Tên gọi ➔ Ký hiệu (Câu: La là ...)</option>
+                        </select>
+
+                        <select id="quiz-input-mode" onchange="changeInputMode()" class="bg-[#2c2018] text-amber-100 text-xs sm:text-sm font-medium px-3 py-2 rounded-xl border border-amber-800/50 focus:outline-none focus:border-amber-500">
+                            <option value="mcq">⚡ Trắc nghiệm 4 đáp án</option>
+                            <option value="typing">⌨️ Tự gõ đáp án (Điền khuyết)</option>
+                        </select>
+                    </div>
+
+                    <!-- Timer Mode -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold text-stone-400"><i class="fa-regular fa-clock mr-1"></i>Đếm ngược:</span>
+                        <select id="quiz-timer-setting" onchange="updateTimerSetting()" class="bg-[#2c2018] text-amber-100 text-xs sm:text-sm font-medium px-2.5 py-2 rounded-xl border border-amber-800/50 focus:outline-none focus:border-amber-500">
+                            <option value="0">Tắt (Tự do)</option>
+                            <option value="5">5 giây / câu</option>
+                            <option value="3">3 giây (Phản xạ nhanh)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Score & Streak Counters -->
+                <div class="lg:col-span-5 grid grid-cols-3 gap-3">
+                    <div class="bg-[#1e1611] border border-amber-900/40 rounded-2xl p-3 text-center flex flex-col justify-center">
+                        <span class="text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Số câu đã làm</span>
+                        <span id="stat-total" class="text-xl sm:text-2xl font-extrabold text-white mt-0.5">0</span>
+                    </div>
+                    <div class="bg-[#1e1611] border border-amber-900/40 rounded-2xl p-3 text-center flex flex-col justify-center">
+                        <span class="text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Chuỗi đúng 🔥</span>
+                        <span id="stat-streak" class="text-xl sm:text-2xl font-extrabold text-amber-400 mt-0.5">0</span>
+                    </div>
+                    <div class="bg-[#1e1611] border border-amber-900/40 rounded-2xl p-3 text-center flex flex-col justify-center">
+                        <span class="text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Độ chính xác</span>
+                        <span id="stat-accuracy" class="text-xl sm:text-2xl font-extrabold text-emerald-400 mt-0.5">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Quiz Interactive Workspace -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- Left Column: Question Card & Answer Controls (7 cols) -->
+                <div class="lg:col-span-7 bg-gradient-to-b from-[#251b14] to-[#1a130e] border border-amber-800/40 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                    
+                    <!-- Timer Progress Bar -->
+                    <div id="timer-bar-container" class="hidden absolute top-0 left-0 right-0 h-1.5 bg-stone-800">
+                        <div id="timer-bar" class="h-full bg-gradient-to-r from-amber-500 to-red-500 transition-all duration-100" style="width: 100%"></div>
+                    </div>
+
+                    <!-- Question Header Badge -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-2">
+                            <span id="question-number-badge" class="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono text-xs sm:text-sm font-bold">
+                                Câu 1
+                            </span>
+                            <span id="question-category-badge" class="px-2.5 py-1 rounded-full bg-stone-800 text-stone-300 text-xs font-medium">
+                                Nốt cơ bản
+                            </span>
+                        </div>
+                        <button onclick="strumCurrentChord()" class="text-xs sm:text-sm text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1.5 bg-amber-950/60 px-3 py-1.5 rounded-xl border border-amber-800/50 transition">
+                            <i class="fa-solid fa-volume-high"></i> Nghe âm thanh
+                        </button>
+                    </div>
+
+                    <!-- THE QUESTION PROMPT (User's exact requested style: "Câu 1: C là ....") -->
+                    <div class="my-6 sm:my-8 text-center">
+                        <p class="text-stone-400 text-xs sm:text-sm uppercase tracking-widest mb-2 font-semibold" id="question-subtitle">
+                             Điền tên hoặc ký hiệu hợp âm tương ứng:
+                        </p>
+                        <div class="inline-flex flex-wrap items-baseline justify-center gap-x-3 gap-y-2 text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white bg-[#140f0b]/70 px-6 py-6 rounded-2xl border border-amber-900/30 w-full shadow-inner">
+                            <span id="q-prefix" class="text-stone-400 font-mono text-xl sm:text-3xl">Câu 1:</span>
+                            <span id="q-target" class="text-amber-400 underline decoration-amber-500/40 decoration-wavy underline-offset-8">C</span>
+                            <span class="text-stone-300">là</span>
+                            <span id="q-blank" class="px-4 py-1 rounded-xl bg-amber-950/60 border-2 border-dashed border-amber-500/50 text-amber-200 min-w-[120px] inline-block text-center">....</span>
+                        </div>
+                    </div>
+
+                    <!-- MULTIPLE CHOICE OPTIONS -->
+                    <div id="mcq-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-6">
+                        <!-- Dynamically populated buttons -->
+                    </div>
+
+                    <!-- TYPING INPUT MODE -->
+                    <div id="typing-container" class="hidden mt-6">
+                        <form onsubmit="handleTypingSubmit(event)" class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="typing-input" autocomplete="off" placeholder="Nhập đáp án (VD: Đô trưởng, Am, Mi...)" 
+                                class="flex-1 bg-[#120d0a] border-2 border-amber-800/60 focus:border-amber-400 rounded-2xl px-5 py-4 text-lg font-bold text-white placeholder-stone-600 focus:outline-none">
+                            <button type="submit" id="typing-submit-btn" class="px-6 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-extrabold text-base shadow-lg transition">
+                                Kiểm Tra <i class="fa-solid fa-paper-plane ml-1"></i>
+                            </button>
+                        </form>
+                        <p class="text-xs text-stone-400 mt-2">
+                            💡 Mẹo: Khi trả lời bằng tiếng Việt, bạn có thể gõ có dấu hoặc không dấu (VD: <code class="text-amber-300">Đô trưởng</code>, <code class="text-amber-300">Do truong</code> hoặc <code class="text-amber-300">Đô</code> đối với nốt gốc).
+                        </p>
+                    </div>
+
+                    <!-- Feedback Banner & Next Button -->
+                    <div id="feedback-panel" class="hidden mt-6 p-4 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4 transition-all">
+                        <div class="flex items-center gap-3 text-center sm:text-left">
+                            <div id="feedback-icon" class="w-10 h-10 rounded-full flex items-center justify-center text-lg shrink-0"></div>
+                            <div>
+                                <h4 id="feedback-title" class="font-bold text-base"></h4>
+                                <p id="feedback-detail" class="text-xs sm:text-sm text-stone-300"></p>
+                            </div>
+                        </div>
+                        <button onclick="nextQuestion()" id="next-q-btn" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-md transition flex items-center justify-center gap-2 shrink-0">
+                            <span>Câu Tiếp Theo</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                            <span class="text-[10px] bg-black/20 px-1.5 py-0.5 rounded font-mono">Space</span>
+                        </button>
+                    </div>
+
+                    <!-- Keyboard shortcut hint -->
+                    <div class="mt-6 pt-4 border-t border-stone-800/80 flex flex-wrap items-center justify-between text-xs text-stone-400 gap-2">
+                        <span><i class="fa-regular fa-keyboard mr-1 text-amber-500"></i> Phím tắt: Nhấn phím <kbd class="px-1.5 py-0.5 bg-stone-800 rounded text-stone-200 font-mono">1</kbd> <kbd class="px-1.5 py-0.5 bg-stone-800 rounded text-stone-200 font-mono">2</kbd> <kbd class="px-1.5 py-0.5 bg-stone-800 rounded text-stone-200 font-mono">3</kbd> <kbd class="px-1.5 py-0.5 bg-stone-800 rounded text-stone-200 font-mono">4</kbd> để chọn nhanh, <kbd class="px-1.5 py-0.5 bg-stone-800 rounded text-stone-200 font-mono">Space</kbd> qua câu mới.</span>
+                        <span id="repeat-badge" class="hidden text-amber-400 font-medium"><i class="fa-solid fa-rotate mr-1"></i>Đang lặp lại câu cần nhớ</span>
+                    </div>
+                </div>
+
+                <!-- Right Column: Visual Guitar Fretboard & Memory Aid (5 cols) -->
+                <div class="lg:col-span-5 bg-[#1e1611] border border-amber-900/40 rounded-3xl p-6 shadow-xl flex flex-col items-center">
+                    <div class="w-full flex items-center justify-between border-b border-stone-800 pb-3 mb-4">
+                        <div>
+                            <h3 class="font-bold text-amber-100 text-base flex items-center gap-2">
+                                <i class="fa-solid fa-hand-sparkles text-amber-500"></i>
+                                Thế Bấm & Cách Nhớ
+                            </h3>
+                            <p class="text-xs text-stone-400">Hiển thị chi tiết để kết hợp học tên & bấm đàn</p>
+                        </div>
+                        <label class="flex items-center gap-1.5 text-xs text-stone-300 cursor-pointer select-none">
+                            <input type="checkbox" id="always-show-diagram" onchange="updateDiagramVisibility()" class="accent-amber-500 rounded">
+                            <span>Luôn hiện</span>
+                        </label>
+                    </div>
+
+                    <!-- Hidden state before answering (unless "Always show" is checked) -->
+                    <div id="diagram-mystery" class="py-12 px-4 text-center flex flex-col items-center justify-center w-full">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-950/50 border border-amber-800/40 flex items-center justify-center text-amber-500/60 text-2xl mb-3">
+                            <i class="fa-solid fa-guitar"></i>
+                        </div>
+                        <p class="text-stone-300 font-semibold text-sm">Trả lời câu hỏi để mở khóa thế bấm!</p>
+                        <p class="text-stone-500 text-xs mt-1 max-w-xs">Hoặc tích vào ô "Luôn hiện" ở góc trên nếu bạn muốn vừa nhìn thế bấm vừa đoán hợp âm.</p>
+                    </div>
+
+                    <!-- Revealed Fretboard Diagram -->
+                    <div id="diagram-content" class="hidden w-full flex flex-col items-center">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span id="diag-symbol" class="text-3xl font-extrabold text-amber-400 font-mono">C</span>
+                            <span class="text-stone-500">—</span>
+                            <span id="diag-name" class="text-xl font-bold text-white">Đô Trưởng</span>
+                        </div>
+                        <p id="diag-formula" class="text-xs text-amber-300/90 bg-amber-950/60 px-3 py-1 rounded-full border border-amber-800/40 mb-4">
+                            Nốt cấu tạo: C - E - G
+                        </p>
+
+                        <!-- Dynamic SVG Fretboard Container -->
+                        <div id="quiz-svg-holder" class="chord-svg-container my-1"></div>
+
+                        <!-- Finger placement text guide -->
+                        <div id="diag-fingers" class="w-full mt-4 bg-[#140f0b] p-3.5 rounded-2xl border border-stone-800 text-xs space-y-1.5 text-stone-300">
+                        </div>
+
+                        <button onclick="strumCurrentChord()" class="mt-4 w-full py-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-amber-300 font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-play"></i> Rải thử hợp âm này trên đàn
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question History Log (Shows the continuous stream: Câu 1, Câu 2, Câu 3...) -->
+            <div class="bg-[#1e1611] border border-amber-900/40 rounded-2xl p-4 sm:p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-stone-400 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
+                        Nhật ký câu hỏi vừa luyện (Lặp lại ngẫu nhiên & ưu tiên câu sai)
+                    </h3>
+                    <button onclick="clearHistory()" class="text-xs text-stone-400 hover:text-amber-400 transition">Xóa lịch sử</button>
+                </div>
+                <div id="history-list" class="flex items-center gap-2.5 overflow-x-auto pb-2 pt-1">
+                    <span class="text-xs text-stone-500 italic">Chưa có câu trả lời nào. Hãy bắt đầu câu số 1!</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 1.5: MULTI-CHORD PROGRESSION BUILDER ==================== -->
+        <section id="view-progression" class="hidden space-y-6">
+            <!-- Control Panel: Selector, Quick Input & Presets -->
+            <div class="bg-[#1e1611] border border-amber-900/40 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-5">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-stone-800 pb-4">
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-extrabold text-amber-300 flex items-center gap-2">
+                            <i class="fa-solid fa-guitar text-amber-500"></i>
+                            Chọn & Hiển Thị Nhiều Hợp Âm Cùng Lúc
+                        </h2>
+                        <p class="text-xs sm:text-sm text-stone-400 mt-0.5">
+                            Bấm chọn các hợp âm bên dưới hoặc chọn nhanh vòng hợp âm mẫu (VD: <span class="text-amber-200 font-mono">C - G - Am - F</span>) để xem toàn bộ thế bấm và tên gọi cạnh nhau.
+                        </p>
+                    </div>
+
+                    <!-- Quick Text Input Form -->
+                    <form onsubmit="handleQuickProgressionInput(event)" class="flex items-center gap-2 w-full lg:w-auto">
+                        <div class="relative flex-1 lg:w-72">
+                            <i class="fa-solid fa-keyboard absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
+                            <input type="text" id="prog-text-input" placeholder="Nhập nhanh: C - G - Am - F..." 
+                                class="w-full bg-[#120d0a] border border-amber-800/60 focus:border-amber-400 rounded-xl pl-9 pr-3 py-2 text-xs sm:text-sm text-white placeholder-stone-500 focus:outline-none font-mono">
+                        </div>
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs sm:text-sm transition shrink-0 shadow">
+                            Hiện Chuỗi
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Classic Presets Row -->
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-stone-400 block mb-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-400 mr-1"></i> Vòng Hợp Âm Kinh Điển (1 Click là hiện):
+                    </span>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="applyPreset(['C', 'G', 'Am', 'F'])" class="px-3 py-1.5 rounded-xl bg-[#2a1f17] hover:bg-amber-900/50 border border-amber-800/50 text-xs font-medium text-amber-100 transition flex items-center gap-1.5">
+                            <span class="text-amber-400 font-bold font-mono">C - G - Am - F</span>
+                            <span class="text-stone-400">(Pop / Canon)</span>
+                        </button>
+                        <button onclick="applyPreset(['Am', 'F', 'C', 'G'])" class="px-3 py-1.5 rounded-xl bg-[#2a1f17] hover:bg-amber-900/50 border border-amber-800/50 text-xs font-medium text-amber-100 transition flex items-center gap-1.5">
+                            <span class="text-amber-400 font-bold font-mono">Am - F - C - G</span>
+                            <span class="text-stone-400">(Ballad La Thứ)</span>
+                        </button>
+                        <button onclick="applyPreset(['C', 'Am', 'Dm', 'G'])" class="px-3 py-1.5 rounded-xl bg-[#2a1f17] hover:bg-amber-900/50 border border-amber-800/50 text-xs font-medium text-amber-100 transition flex items-center gap-1.5">
+                            <span class="text-amber-400 font-bold font-mono">C - Am - Dm - G</span>
+                            <span class="text-stone-400">(Acoustic Nhạc Trẻ)</span>
+                        </button>
+                        <button onclick="applyPreset(['F', 'G', 'Em', 'Am'])" class="px-3 py-1.5 rounded-xl bg-[#2a1f17] hover:bg-amber-900/50 border border-amber-800/50 text-xs font-medium text-amber-100 transition flex items-center gap-1.5">
+                            <span class="text-amber-400 font-bold font-mono">F - G - Em - Am</span>
+                            <span class="text-stone-400">(Vòng R&B / Chill)</span>
+                        </button>
+                        <button onclick="applyPreset(['G', 'D', 'Em', 'C'])" class="px-3 py-1.5 rounded-xl bg-[#2a1f17] hover:bg-amber-900/50 border border-amber-800/50 text-xs font-medium text-amber-100 transition flex items-center gap-1.5">
+                            <span class="text-amber-400 font-bold font-mono">G - D - Em - C</span>
+                            <span class="text-stone-400">(Sol Trưởng)</span>
+                        </button>
+                        <button onclick="applyPreset(['C', 'G', 'Am', 'Em', 'F', 'C', 'Dm', 'G'])" class="px-3 py-1.5 rounded-xl bg-[#2a1f17] hover:bg-amber-900/50 border border-amber-800/50 text-xs font-medium text-amber-100 transition flex items-center gap-1.5">
+                            <span class="text-amber-400 font-bold font-mono">C-G-Am-Em-F-C-Dm-G</span>
+                            <span class="text-stone-400">(Canon Đầy Đủ)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Interactive Chord Toggle Buttons -->
+                <div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                        <span class="text-xs font-bold uppercase tracking-wider text-stone-400">
+                            <i class="fa-solid fa-hand-pointer text-amber-400 mr-1"></i> Bấm để Bật / Tắt hợp âm trong danh sách hiển thị:
+                        </span>
+                        <div class="flex items-center gap-3">
+                            <label class="flex items-center gap-1.5 text-xs text-stone-300 cursor-pointer select-none">
+                                <input type="checkbox" id="prog-allow-duplicates" class="accent-amber-500 rounded">
+                                <span>Cho phép thêm trùng hợp âm (Nối đuôi)</span>
+                            </label>
+                            <button onclick="clearProgression()" class="text-xs text-red-400 hover:text-red-300 font-semibold transition">
+                                <i class="fa-solid fa-trash-can mr-1"></i> Xóa hết
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="prog-chord-picker" class="flex flex-wrap gap-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Playback & Practice Action Bar -->
+            <div class="bg-gradient-to-r from-[#251b14] via-[#1e1611] to-[#251b14] border border-amber-800/50 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+                <!-- Current Sequence Summary Pill -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-bold text-stone-400 uppercase">Chuỗi đang hiện (<span id="prog-count">4</span>):</span>
+                    <div id="prog-summary-pills" class="flex flex-wrap items-center gap-1.5">
+                        <!-- Breadcrumb pills C -> G -> Am -> F -->
+                    </div>
+                </div>
+
+                <!-- Player Controls & Send to Quiz -->
+                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
+                    <!-- Tempo / Interval Speed -->
+                    <div class="flex items-center gap-2 bg-[#140f0b] px-3 py-1.5 rounded-xl border border-stone-800">
+                        <i class="fa-solid fa-gauge-high text-amber-400 text-xs"></i>
+                        <span class="text-xs text-stone-300">Tốc độ chuyển:</span>
+                        <select id="prog-speed" onchange="restartLoopIfPlaying()" class="bg-transparent text-amber-300 font-bold text-xs focus:outline-none cursor-pointer">
+                            <option value="2800" class="bg-[#1e1611]">Chậm (2.8 giây/hợp âm)</option>
+                            <option value="2000" selected class="bg-[#1e1611]">Vừa (2.0 giây/hợp âm)</option>
+                            <option value="1400" class="bg-[#1e1611]">Nhanh (1.4 giây/hợp âm)</option>
+                            <option value="1000" class="bg-[#1e1611]">Siêu tốc (1.0 giây/hợp âm)</option>
+                        </select>
+                    </div>
+
+                    <!-- Play / Loop Progression Button -->
+                    <button onclick="togglePlayProgression()" id="prog-play-btn" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm transition flex items-center gap-2 shadow-lg">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Phát Cả Vòng (Loop)</span>
+                    </button>
+
+                    <!-- Practice this sequence in Quiz -->
+                    <button onclick="practiceProgressionInQuiz()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition flex items-center gap-2 shadow-lg">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Hỏi Đáp Riêng Chuỗi Này</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Multi-Chord Visual Cards Grid -->
+            <div id="prog-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                <!-- Populated dynamically with selected chords -->
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 2: FLASHCARDS MODE ==================== -->
+        <section id="view-flashcard" class="hidden space-y-6">
+            <div class="max-w-xl mx-auto">
+                <div class="flex items-center justify-between mb-4">
+                    <span id="fc-counter" class="text-sm font-bold text-amber-400 font-mono">Thẻ 1 / 14</span>
+                    <div class="flex gap-2">
+                        <button onclick="shuffleFlashcards()" class="px-3 py-1.5 rounded-xl bg-[#251b14] hover:bg-amber-900/40 text-stone-200 text-xs font-semibold border border-amber-800/40 transition">
+                            <i class="fa-solid fa-shuffle mr-1 text-amber-400"></i> Xáo trộn thẻ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3D Flip Card -->
+                <div onclick="flipCard()" class="perspective-1000 cursor-pointer select-none h-[430px] w-full">
+                    <div id="fc-inner" class="transform-style-3d relative w-full h-full">
+                        
+                        <!-- Front of Flashcard -->
+                        <div class="backface-hidden absolute inset-0 bg-gradient-to-br from-[#291e16] to-[#18110c] border-2 border-amber-700/50 rounded-3xl p-8 flex flex-col items-center justify-between shadow-2xl">
+                            <div class="w-full flex justify-between items-center text-xs text-stone-400">
+                                <span id="fc-front-cat" class="px-3 py-1 rounded-full bg-stone-800 text-amber-300 font-medium">Cơ bản</span>
+                                <span><i class="fa-solid fa-hand-pointer mr-1"></i> Chạm để lật mặt sau</span>
+                            </div>
+
+                            <div class="text-center my-auto">
+                                <p class="text-stone-400 text-sm mb-2">Hợp âm này tên là gì & bấm thế nào?</p>
+                                <div id="fc-front-symbol" class="text-7xl sm:text-8xl font-extrabold text-amber-400 font-mono tracking-tight">
+                                    C
+                                </div>
+                                <p class="mt-4 text-lg font-semibold text-stone-300">
+                                    <span id="fc-front-prompt">C là ....</span>
+                                </p>
+                            </div>
+
+                            <div class="w-full text-center">
+                                <button onclick="event.stopPropagation(); strumFlashcardChord();" class="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold transition">
+                                    <i class="fa-solid fa-volume-high mr-1"></i> Nghe thử tiếng đàn
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Back of Flashcard -->
+                        <div class="backface-hidden rotate-y-180 absolute inset-0 bg-gradient-to-br from-[#231a13] to-[#140e0b] border-2 border-emerald-600/50 rounded-3xl p-6 flex flex-col items-center justify-between shadow-2xl">
+                            <div class="text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <span id="fc-back-symbol" class="text-2xl font-extrabold text-amber-400 font-mono">C</span>
+                                    <span class="text-stone-400">là</span>
+                                    <span id="fc-back-name" class="text-2xl font-extrabold text-emerald-400">Đô Trưởng</span>
+                                </div>
+                                <p id="fc-back-notes" class="text-xs text-stone-400 mt-0.5">Cấu tạo: C - E - G</p>
+                            </div>
+
+                            <div id="fc-svg-holder" class="chord-svg-container my-1 scale-95"></div>
+
+                            <div id="fc-back-tip" class="text-xs text-center text-stone-300 bg-black/30 px-4 py-2 rounded-xl border border-stone-800 w-full">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Flashcard Navigation Controls -->
+                <div class="flex items-center justify-between gap-4 mt-6">
+                    <button onclick="prevFlashcard()" class="flex-1 py-3.5 rounded-2xl bg-[#251b14] hover:bg-[#31241b] border border-amber-900/50 text-stone-200 font-bold text-sm transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-chevron-left"></i> Thẻ Trước
+                    </button>
+                    <button onclick="flipCard()" class="px-6 py-3.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm transition shadow-lg">
+                        <i class="fa-solid fa-rotate"></i> Lật Thẻ
+                    </button>
+                    <button onclick="nextFlashcard()" class="flex-1 py-3.5 rounded-2xl bg-[#251b14] hover:bg-[#31241b] border border-amber-900/50 text-stone-200 font-bold text-sm transition flex items-center justify-center gap-2">
+                        Thẻ Tiếp <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 3: CHORD DICTIONARY & CHEAT SHEET ==================== -->
+        <section id="view-dictionary" class="hidden space-y-6">
+            <!-- Quick Mnemonic Rule Banner -->
+            <div class="bg-gradient-to-r from-amber-950/70 via-[#261c14] to-amber-950/70 border border-amber-700/40 rounded-2xl p-5">
+                <h3 class="text-base sm:text-lg font-bold text-amber-300 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-amber-400"></i>
+                    Mẹo Học Thuộc Nhanh Ký Hiệu Hợp Âm Guitar Cho Người Mới:
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs sm:text-sm text-stone-200 mt-3">
+                    <div class="bg-black/30 p-3.5 rounded-xl border border-amber-900/30">
+                        <p class="font-bold text-amber-400 mb-1">1. 7 Chữ Cái Tương Ứng 7 Nốt:</p>
+                        <p class="leading-relaxed font-mono text-xs">
+                            <b>A</b> = La | <b>B</b> = Si | <b>C</b> = Đô | <b>D</b> = Rê | <b>E</b> = Mi | <b>F</b> = Fa | <b>G</b> = Sol
+                        </p>
+                        <p class="text-stone-400 text-xs mt-1">(Bắt đầu từ A là La, đếm tiến lên theo bảng chữ cái).</p>
+                    </div>
+                    <div class="bg-black/30 p-3.5 rounded-xl border border-amber-900/30">
+                        <p class="font-bold text-amber-400 mb-1">2. Phân Biệt Trưởng & Thứ:</p>
+                        <p class="leading-relaxed text-xs">
+                            • Chỉ viết chữ hoa (VD: <b>C, D, E, G, A</b>) ➔ Hợp âm <b>Trưởng</b>.<br>
+                            • Có thêm chữ <b>"m"</b> nhỏ phía sau (VD: <b>Am, Dm, Em, Bm</b>) ➔ Hợp âm <b>Thứ</b> (minor).
+                        </p>
+                    </div>
+                    <div class="bg-black/30 p-3.5 rounded-xl border border-amber-900/30">
+                        <p class="font-bold text-amber-400 mb-1">3. Hợp Âm 7 & Hợp Âm Màu:</p>
+                        <p class="leading-relaxed text-xs">
+                            • Thêm số <b>7</b> (VD: <b>G7, E7, B7</b>) ➔ Hợp âm Bảy át.<br>
+                            • <b>maj7</b> (Cmaj7, Fmaj7) ➔ Trưởng 7.<br>
+                            • <b>m7</b> (Am7, Dm7) ➔ Thứ 7.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search bar in dictionary -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <h2 class="text-lg font-bold text-white">Bảng Tổng Hợp Toàn Bộ Hợp Âm & Thế Bấm</h2>
+                <div class="relative w-full sm:w-72">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-sm"></i>
+                    <input type="text" id="dict-search" oninput="renderDictionary()" placeholder="Tìm hợp âm (VD: C, La thứ, G7...)" 
+                        class="w-full bg-[#1e1611] border border-amber-800/50 rounded-xl pl-9 pr-4 py-2 text-sm text-white placeholder-stone-500 focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+
+            <!-- Dictionary Cards Grid -->
+            <div id="dictionary-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-amber-900/20 py-4 mt-10 text-center text-xs text-stone-500">
+        <p>GuitarMemo — Học thuộc lòng ký hiệu hợp âm & thế bấm Guitar trực quan</p>
+    </footer>
+
+    <!-- ==================== APPLICATION LOGIC ==================== -->
+    <script>
+        /**
+         * COMPREHENSIVE VIETNAMESE GUITAR CHORD DATABASE
+         * frets: [String 6 (Low E), String 5 (A), String 4 (D), String 3 (G), String 2 (B), String 1 (High E)]
+         * -1 = Muted (X), 0 = Open (O), 1..4 = Fret number
+         * fingers: [String 6..1] 0 = none, 1 = Index, 2 = Middle, 3 = Ring, 4 = Pinky
+         * midi: MIDI note numbers for accurate Web Audio API guitar synthesis
+         */
+        const CHORD_DATABASE = [
+            // --- GROUP 1: 7 NỐT NHẠC GỐC & HỢP ÂM TRƯỞNG TƯƠNG ỨNG (C, D, E, F, G, A, B) ---
+            {
+                id: 'c_note',
+                symbol: 'C',
+                name: 'Đô (Đô trưởng)',
+                shortName: 'Đô',
+                acceptedAnswers: ['đô', 'do', 'đô trưởng', 'do truong', 'c'],
+                category: 'notes',
+                categoryLabel: '7 Gốc Nhạc Cơ Bản',
+                frets: [-1, 3, 2, 0, 1, 0],
+                fingers: [0, 3, 2, 0, 1, 0],
+                notes: 'C - E - G (Đô - Mi - Sol)',
+                guide: 'Ngón 1: Dây 2 ngăn 1 | Ngón 2: Dây 4 ngăn 2 | Ngón 3: Dây 5 ngăn 3 (Bỏ dây 6)',
+                midi: [48, 52, 55, 60, 64]
+            },
+            {
+                id: 'd_note',
+                symbol: 'D',
+                name: 'Rê (Rê trưởng)',
+                shortName: 'Rê',
+                acceptedAnswers: ['rê', 're', 'rê trưởng', 're truong', 'd'],
+                category: 'notes',
+                categoryLabel: '7 Gốc Nhạc Cơ Bản',
+                frets: [-1, -1, 0, 2, 3, 2],
+                fingers: [0, 0, 0, 1, 3, 2],
+                notes: 'D - F# - A (Rê - Fa# - La)',
+                guide: 'Ngón 1: Dây 3 ngăn 2 | Ngón 2: Dây 1 ngăn 2 | Ngón 3: Dây 2 ngăn 3 (Bỏ dây 5, 6)',
+                midi: [50, 57, 62, 66]
+            },
+            {
+                id: 'e_note',
+                symbol: 'E',
+                name: 'Mi (Mi trưởng)',
+                shortName: 'Mi',
+                acceptedAnswers: ['mi', 'mi trưởng', 'mi truong', 'e'],
+                category: 'notes',
+                categoryLabel: '7 Gốc Nhạc Cơ Bản',
+                frets: [0, 2, 2, 1, 0, 0],
+                fingers: [0, 2, 3, 1, 0, 0],
+                notes: 'E - G# - B (Mi - Sol# - Si)',
+                guide: 'Ngón 1: Dây 3 ngăn 1 | Ngón 2: Dây 5 ngăn 2 | Ngón 3: Dây 4 ngăn 2 (Rải cả 6 dây)',
+                midi: [40, 47, 52, 56, 59, 64]
+            },
+            {
+                id: 'f_note',
+                symbol: 'F',
+                name: 'Fa (Fa trưởng)',
+                shortName: 'Fa',
+                acceptedAnswers: ['fa', 'pha', 'fa trưởng', 'fa truong', 'f'],
+                category: 'notes',
+                categoryLabel: '7 Gốc Nhạc Cơ Bản',
+                frets: [1, 3, 3, 2, 1, 1],
+                fingers: [1, 3, 4, 2, 1, 1],
+                barre: { fret: 1, fromString: 6, toString: 1 },
+                notes: 'F - A - C (Fa - La - Đô)',
+                guide: 'Ngón 1 chặn toàn bộ ngăn 1 | Ngón 2: Dây 3 ngăn 2 | Ngón 3, 4: Dây 5, 4 ngăn 3',
+                midi: [41, 48, 53, 57, 60, 65]
+            },
+            {
+                id: 'g_note',
+                symbol: 'G',
+                name: 'Sol (Sol trưởng)',
+                shortName: 'Sol',
+                acceptedAnswers: ['sol', 'son', 'sol trưởng', 'sol truong', 'son truong', 'g'],
+                category: 'notes',
+                categoryLabel: '7 Gốc Nhạc Cơ Bản',
+                frets: [3, 2, 0, 0, 0, 3],
+                fingers: [2, 1, 0, 0, 0, 3],
+                notes: 'G - B - D (Sol - Si - Rê)',
+                guide: 'Ngón 1: Dây 5 ngăn 2 | Ngón 2: Dây 6 ngăn 3 | Ngón 3: Dây 1 ngăn 3',
+                midi: [43, 47, 50, 55, 59, 67]
+            },
+            {
+                id: 'a_note',
+                symbol: 'A',
+                name: 'La (La trưởng)',
+                shortName: 'La',
+                acceptedAnswers: ['la', 'la trưởng', 'la truong', 'a'],
+                category: 'notes',
+                categoryLabel: '7 Gốc Nhạc Cơ Bản',
+                frets: [-1, 0, 2, 2, 2, 0],
+                fingers: [0, 0, 1, 2, 3, 0],
+                notes: 'A - C# - E (La - Đô# - Mi)',
+                guide: 'Ngón 1, 2, 3 bấm thẳng hàng vào Dây 4, 3, 2 tại ngăn 2 (Bỏ dây 6)',
+                midi: [45, 52, 57, 61, 64]
+            },
+            {
+                id: 'b_note',
+                symbol: 'B',
+                name: 'Si (Si trưởng)',
+                shortName: 'Si',
+                acceptedAnswers: ['si', 'xi', 'si trưởng', 'si truong', 'b'],
+                category: 'notes',
+                categoryLabel: '7 Gốc Nhạc Cơ Bản',
+                frets: [-1, 2, 4, 4, 4, 2],
+                fingers: [0, 1, 2, 3, 4, 1],
+                barre: { fret: 2, fromString: 5, toString: 1 },
+                notes: 'B - D# - F# (Si - Rê# - Fa#)',
+                guide: 'Ngón 1 chặn ngăn 2 (từ dây 5) | Ngón 2, 3, 4 bấm dây 4, 3, 2 tại ngăn 4',
+                midi: [47, 54, 59, 63, 66]
+            },
+
+            // --- GROUP 2: HỢP ÂM THỨ & TRƯỞNG ĐỆM HÁT CƠ BẢN (Am, Dm, Em, Bm, Fm, Gm) ---
+            {
+                id: 'am_chord',
+                symbol: 'Am',
+                name: 'La thứ',
+                shortName: 'La thứ',
+                acceptedAnswers: ['la thứ', 'la thu', 'am'],
+                category: 'basic',
+                categoryLabel: 'Trưởng & Thứ Cơ Bản',
+                frets: [-1, 0, 2, 2, 1, 0],
+                fingers: [0, 0, 2, 3, 1, 0],
+                notes: 'A - C - E (La - Đô - Mi)',
+                guide: 'Ngón 1: Dây 2 ngăn 1 | Ngón 2: Dây 4 ngăn 2 | Ngón 3: Dây 3 ngăn 2',
+                midi: [45, 52, 57, 60, 64]
+            },
+            {
+                id: 'dm_chord',
+                symbol: 'Dm',
+                name: 'Rê thứ',
+                shortName: 'Rê thứ',
+                acceptedAnswers: ['rê thứ', 're thu', 'dm'],
+                category: 'basic',
+                categoryLabel: 'Trưởng & Thứ Cơ Bản',
+                frets: [-1, -1, 0, 2, 3, 1],
+                fingers: [0, 0, 0, 2, 3, 1],
+                notes: 'D - F - A (Rê - Fa - La)',
+                guide: 'Ngón 1: Dây 1 ngăn 1 | Ngón 2: Dây 3 ngăn 2 | Ngón 3: Dây 2 ngăn 3',
+                midi: [50, 57, 62, 65]
+            },
+            {
+                id: 'em_chord',
+                symbol: 'Em',
+                name: 'Mi thứ',
+                shortName: 'Mi thứ',
+                acceptedAnswers: ['mi thứ', 'mi thu', 'em'],
+                category: 'basic',
+                categoryLabel: 'Trưởng & Thứ Cơ Bản',
+                frets: [0, 2, 2, 0, 0, 0],
+                fingers: [0, 2, 3, 0, 0, 0],
+                notes: 'E - G - B (Mi - Sol - Si)',
+                guide: 'Hợp âm dễ nhất: Chỉ cần Ngón 2 (Dây 5 ngăn 2) & Ngón 3 (Dây 4 ngăn 2)',
+                midi: [40, 47, 52, 55, 59, 64]
+            },
+            {
+                id: 'bm_chord',
+                symbol: 'Bm',
+                name: 'Si thứ',
+                shortName: 'Si thứ',
+                acceptedAnswers: ['si thứ', 'si thu', 'bm'],
+                category: 'basic',
+                categoryLabel: 'Trưởng & Thứ Cơ Bản',
+                frets: [-1, 2, 4, 4, 3, 2],
+                fingers: [0, 1, 3, 4, 2, 1],
+                barre: { fret: 2, fromString: 5, toString: 1 },
+                notes: 'B - D - F# (Si - Rê - Fa#)',
+                guide: 'Ngón 1 chặn ngăn 2 | Ngón 2: Dây 2 ngăn 3 | Ngón 3, 4: Dây 4, 3 ngăn 4',
+                midi: [47, 54, 59, 62, 66]
+            },
+            {
+                id: 'fm_chord',
+                symbol: 'Fm',
+                name: 'Fa thứ',
+                shortName: 'Fa thứ',
+                acceptedAnswers: ['fa thứ', 'fa thu', 'pha thu', 'fm'],
+                category: 'basic',
+                categoryLabel: 'Trưởng & Thứ Cơ Bản',
+                frets: [1, 3, 3, 1, 1, 1],
+                fingers: [1, 3, 4, 1, 1, 1],
+                barre: { fret: 1, fromString: 6, toString: 1 },
+                notes: 'F - Ab - C (Fa - La giáng - Đô)',
+                guide: 'Ngón 1 chặn hết ngăn 1 | Ngón 3: Dây 5 ngăn 3 | Ngón 4: Dây 4 ngăn 3',
+                midi: [41, 48, 53, 56, 60, 65]
+            },
+            {
+                id: 'cm_chord',
+                symbol: 'Cm',
+                name: 'Đô thứ',
+                shortName: 'Đô thứ',
+                acceptedAnswers: ['đô thứ', 'do thu', 'cm'],
+                category: 'basic',
+                categoryLabel: 'Trưởng & Thứ Cơ Bản',
+                frets: [-1, 3, 5, 5, 4, 3],
+                fingers: [0, 1, 3, 4, 2, 1],
+                barre: { fret: 3, fromString: 5, toString: 1 },
+                notes: 'C - Eb - G (Đô - Mi giáng - Sol)',
+                guide: 'Ngón 1 chặn ngăn 3 | Ngón 2: Dây 2 ngăn 4 | Ngón 3, 4: Dây 4, 3 ngăn 5',
+                midi: [48, 55, 60, 63, 67]
+            },
+            {
+                id: 'gm_chord',
+                symbol: 'Gm',
+                name: 'Sol thứ',
+                shortName: 'Sol thứ',
+                acceptedAnswers: ['sol thứ', 'sol thu', 'son thu', 'gm'],
+                category: 'basic',
+                categoryLabel: 'Trưởng & Thứ Cơ Bản',
+                frets: [3, 5, 5, 3, 3, 3],
+                fingers: [1, 3, 4, 1, 1, 1],
+                barre: { fret: 3, fromString: 6, toString: 1 },
+                notes: 'G - Bb - D (Sol - Si giáng - Rê)',
+                guide: 'Ngón 1 chặn hết ngăn 3 | Ngón 3: Dây 5 ngăn 5 | Ngón 4: Dây 4 ngăn 5',
+                midi: [43, 50, 55, 58, 62, 67]
+            },
+            {
+                id: 'fsharp_m_chord',
+                symbol: 'F#m',
+                name: 'Fa thăng thứ',
+                shortName: 'Fa# thứ',
+                acceptedAnswers: ['fa thăng thứ', 'fa thang thu', 'f#m'],
+                category: 'basic',
+                categoryLabel: 'Trưởng & Thứ Cơ Bản',
+                frets: [2, 4, 4, 2, 2, 2],
+                fingers: [1, 3, 4, 1, 1, 1],
+                barre: { fret: 2, fromString: 6, toString: 1 },
+                notes: 'F# - A - C# (Fa# - La - Đô#)',
+                guide: 'Ngón 1 chặn toàn bộ ngăn 2 | Ngón 3: Dây 5 ngăn 4 | Ngón 4: Dây 4 ngăn 4',
+                midi: [42, 49, 54, 57, 61, 66]
+            },
+            {
+                id: 'csharp_m_chord',
+                symbol: 'C#m',
+                name: 'Đô thăng thứ',
+                shortName: 'Đô# thứ',
+                acceptedAnswers: ['đô thăng thứ', 'do thang thu', 'c#m'],
+                category: 'basic',
+                categoryLabel: 'Trưởng & Thứ Cơ Bản',
+                frets: [-1, 4, 6, 6, 5, 4],
+                fingers: [0, 1, 3, 4, 2, 1],
+                barre: { fret: 4, fromString: 5, toString: 1 },
+                notes: 'C# - E - G# (Đô# - Mi - Sol#)',
+                guide: 'Ngón 1 chặn ngăn 4 (từ dây 5) | Ngón 2: Dây 2 ngăn 5 | Ngón 3, 4: Dây 4, 3 ngăn 6',
+                midi: [49, 56, 61, 64, 68]
+            },
+
+            // --- GROUP 3: HỢP ÂM 7 & HỢP ÂM MÀU THÔNG DỤNG (G7, E7, A7, D7, B7, Cmaj7, Fmaj7, Am7, Dm7, Em7, Cadd9) ---
+            {
+                id: 'c7_chord',
+                symbol: 'C7',
+                name: 'Đô bảy (Đô 7)',
+                shortName: 'Đô 7',
+                acceptedAnswers: ['đô 7', 'do 7', 'đô bảy', 'do bay', 'c7'],
+                category: 'seventh',
+                categoryLabel: 'Hợp Âm 7 & Màu',
+                frets: [-1, 3, 2, 3, 1, 0],
+                fingers: [0, 3, 2, 4, 1, 0],
+                notes: 'C - E - G - Bb',
+                guide: 'Giống hợp âm C và bấm thêm Ngón út (4) vào Dây 3 ngăn 3',
+                midi: [48, 52, 58, 60, 64]
+            },
+            {
+                id: 'g7_chord',
+                symbol: 'G7',
+                name: 'Sol bảy (Sol 7)',
+                shortName: 'Sol 7',
+                acceptedAnswers: ['sol 7', 'sol bảy', 'sol bay', 'son 7', 'g7'],
+                category: 'seventh',
+                categoryLabel: 'Hợp Âm 7 & Màu',
+                frets: [3, 2, 0, 0, 0, 1],
+                fingers: [3, 2, 0, 0, 0, 1],
+                notes: 'G - B - D - F',
+                guide: 'Ngón 1: Dây 1 ngăn 1 | Ngón 2: Dây 5 ngăn 2 | Ngón 3: Dây 6 ngăn 3',
+                midi: [43, 47, 50, 55, 59, 65]
+            },
+            {
+                id: 'e7_chord',
+                symbol: 'E7',
+                name: 'Mi bảy (Mi 7)',
+                shortName: 'Mi 7',
+                acceptedAnswers: ['mi 7', 'mi bảy', 'mi bay', 'e7'],
+                category: 'seventh',
+                categoryLabel: 'Hợp Âm 7 & Màu',
+                frets: [0, 2, 0, 1, 0, 0],
+                fingers: [0, 2, 0, 1, 0, 0],
+                notes: 'E - G# - B - D',
+                guide: 'Giống hợp âm E nhưng nhấc ngón 3 ra: Ngón 1 (Dây 3 ngăn 1), Ngón 2 (Dây 5 ngăn 2)',
+                midi: [40, 47, 50, 56, 59, 64]
+            },
+            {
+                id: 'a7_chord',
+                symbol: 'A7',
+                name: 'La bảy (La 7)',
+                shortName: 'La 7',
+                acceptedAnswers: ['la 7', 'la bảy', 'la bay', 'a7'],
+                category: 'seventh',
+                categoryLabel: 'Hợp Âm 7 & Màu',
+                frets: [-1, 0, 2, 0, 2, 0],
+                fingers: [0, 0, 2, 0, 3, 0],
+                notes: 'A - C# - E - G',
+                guide: 'Ngón 2: Dây 4 ngăn 2 | Ngón 3: Dây 2 ngăn 2 (Dây 3 buông)',
+                midi: [45, 52, 55, 61, 64]
+            },
+            {
+                id: 'd7_chord',
+                symbol: 'D7',
+                name: 'Rê bảy (Rê 7)',
+                shortName: 'Rê 7',
+                acceptedAnswers: ['rê 7', 're 7', 'rê bảy', 're bay', 'd7'],
+                category: 'seventh',
+                categoryLabel: 'Hợp Âm 7 & Màu',
+                frets: [-1, -1, 0, 2, 1, 2],
+                fingers: [0, 0, 0, 2, 1, 3],
+                notes: 'D - F# - A - C',
+                guide: 'Ngón 1: Dây 2 ngăn 1 | Ngón 2: Dây 3 ngăn 2 | Ngón 3: Dây 1 ngăn 2',
+                midi: [50, 57, 60, 66]
+            },
+            {
+                id: 'b7_chord',
+                symbol: 'B7',
+                name: 'Si bảy (Si 7)',
+                shortName: 'Si 7',
+                acceptedAnswers: ['si 7', 'si bảy', 'si bay', 'b7'],
+                category: 'seventh',
+                categoryLabel: 'Hợp Âm 7 & Màu',
+                frets: [-1, 2, 1, 2, 0, 2],
+                fingers: [0, 2, 1, 3, 0, 4],
+                notes: 'B - D# - F# - A',
+                guide: 'Ngón 1: Dây 4 ngăn 1 | Ngón 2, 3, 4 bấm lần lượt Dây 5, 3, 1 ở ngăn 2',
+                midi: [47, 51, 57, 59, 66]
+            },
+            {
+                id: 'cmaj7_chord',
+                symbol: 'Cmaj7',
+                name: 'Đô trưởng 7 (Đô major 7)',
+                shortName: 'Đô trưởng 7',
+                acceptedAnswers: ['đô trưởng 7', 'do truong 7', 'đô major 7', 'cmaj7'],
+                category: 'seventh',
+                categoryLabel: 'Hợp Âm 7 & Màu',
+                frets: [-1, 3, 2, 0, 0, 0],
+                fingers: [0, 3, 2, 0, 0, 0],
+                notes: 'C - E - G - B',
+                guide: 'Giống hợp âm C nhưng thả ngón trỏ ra: Ngón 2 (Dây 4 ngăn 2), Ngón 3 (Dây 5 ngăn 3)',
+                midi: [48, 52, 55, 59, 64]
+            },
+            {
+                id: 'fmaj7_chord',
+                symbol: 'Fmaj7',
+                name: 'Fa trưởng 7 (Fa major 7)',
+                shortName: 'Fa trưởng 7',
+                acceptedAnswers: ['fa trưởng 7', 'fa truong 7', 'fa major 7', 'fmaj7'],
+                category: 'seventh',
+                categoryLabel: 'Hợp Âm 7 & Màu',
+                frets: [-1, -1, 3, 2, 1, 0],
+                fingers: [0, 0, 3, 2, 1, 0],
+                notes: 'F - A - C - E',
+                guide: 'Thế bấm thay F chặn cực dễ: Ngón 1 (Dây 2 ngăn 1), Ngón 2 (Dây 3 ngăn 2), Ngón 3 (Dây 4 ngăn 3)',
+                midi: [53, 57, 60, 64]
+            },
+            {
+                id: 'am7_chord',
+                symbol: 'Am7',
+                name: 'La thứ 7',
+                shortName: 'La thứ 7',
+                acceptedAnswers: ['la thứ 7', 'la thu 7', 'am7'],
+                category: 'seventh',
+                categoryLabel: 'Hợp Âm 7 & Màu',
+                frets: [-1, 0, 2, 0, 1, 0],
+                fingers: [0, 0, 2, 0, 1, 0],
+                notes: 'A - C - E - G',
+                guide: 'Giống Am nhưng nhấc ngón 3 ra: Ngón 1 (Dây 2 ngăn 1), Ngón 2 (Dây 4 ngăn 2)',
+                midi: [45, 52, 55, 60, 64]
+            },
+            {
+                id: 'dm7_chord',
+                symbol: 'Dm7',
+                name: 'Rê thứ 7',
+                shortName: 'Rê thứ 7',
+                acceptedAnswers: ['rê thứ 7', 're thu 7', 'dm7'],
+                category: 'seventh',
+                categoryLabel: 'Hợp Âm 7 & Màu',
+                frets: [-1, -1, 0, 2, 1, 1],
+                fingers: [0, 0, 0, 2, 1, 1],
+                notes: 'D - F - A - C',
+                guide: 'Ngón 1 chặn 2 dây 1 & 2 tại ngăn 1 | Ngón 2 bấm Dây 3 ngăn 2',
+                midi: [50, 57, 60, 65]
+            },
+            {
+                id: 'em7_chord',
+                symbol: 'Em7',
+                name: 'Mi thứ 7',
+                shortName: 'Mi thứ 7',
+                acceptedAnswers: ['mi thứ 7', 'mi thu 7', 'em7'],
+                category: 'seventh',
+                categoryLabel: 'Hợp Âm 7 & Màu',
+                frets: [0, 2, 2, 0, 3, 0],
+                fingers: [0, 1, 2, 0, 3, 0],
+                notes: 'E - G - B - D',
+                guide: 'Giống Em và thêm Ngón 3 bấm vào Dây 2 ngăn 3',
+                midi: [40, 47, 52, 55, 62, 64]
+            },
+            {
+                id: 'cadd9_chord',
+                symbol: 'Cadd9',
+                name: 'Đô add 9',
+                shortName: 'Đô add 9',
+                acceptedAnswers: ['đô add 9', 'do add 9', 'cadd9'],
+                category: 'seventh',
+                categoryLabel: 'Hợp Âm 7 & Màu',
+                frets: [-1, 3, 2, 0, 3, 0],
+                fingers: [0, 2, 1, 0, 3, 0],
+                notes: 'C - E - G - D',
+                guide: 'Ngón 1: Dây 4 ngăn 2 | Ngón 2: Dây 5 ngăn 3 | Ngón 3: Dây 2 ngăn 3',
+                midi: [48, 52, 55, 62, 64]
+            }
+        ];
+
+        // --- APPLICATION STATE ---
+        let activeCategories = new Set(['notes', 'basic']);
+        let currentTab = 'quiz';
+        let customQuizChordIds = null; // When set, quiz only asks chords from the user's selected progression
+
+        // Multi-Chord Progression Builder State (Default: C - G - Am - F)
+        let selectedProgression = ['c_note', 'g_note', 'am_chord', 'f_note'];
+        let progPlayInterval = null;
+        let progActivePlayIndex = -1;
+
+        // Spaced repetition weights (higher = ask more often)
+        let chordWeights = {};
+        CHORD_DATABASE.forEach(c => chordWeights[c.id] = 10);
+
+        // Quiz State
+        let questionCounter = 1;
+        let currentQuestion = null; // { chord, askType: 'sym2name'|'name2sym', promptTarget, correctAnswer, options }
+        let isAnswered = false;
+        let lastChordId = null;
+        let stats = { total: 0, correct: 0, streak: 0 };
+        let historyLog = [];
+
+        // Timer State
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let timeRemaining = 0;
+
+        // Flashcard State
+        let flashcardDeck = [];
+        let fcIndex = 0;
+        let isCardFlipped = false;
+
+        // Web Audio Context
+        let audioCtx = null;
+
+        // --- WEB AUDIO API GUITAR SYNTHESIZER ---
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function midiToFreq(midi) {
+            return 440 * Math.pow(2, (midi - 69) / 12);
+        }
+
+        function playGuitarNote(freq, startTime, duration = 2.0) {
+            if (!audioCtx) return;
+
+            // Create warm acoustic guitar pluck using triangle + sawtooth + lowpass filter envelope
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const filter = audioCtx.createBiquadFilter();
+            const gainNode = audioCtx.createGain();
+
+            osc1.type = 'triangle';
+            osc2.type = 'sawtooth';
+
+            osc1.frequency.setValueAtTime(freq, startTime);
+            osc2.frequency.setValueAtTime(freq, startTime);
+            // Slight detune for chorus warmth
+            osc2.detune.setValueAtTime(4, startTime);
+
+            // Acoustic body filter envelope
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(freq * 6, startTime);
+            filter.frequency.exponentialRampToValueAtTime(freq * 1.5, startTime + 0.35);
+
+            // Pluck amplitude envelope
+            gainNode.gain.setValueAtTime(0.001, startTime);
+            gainNode.gain.linearRampToValueAtTime(0.22, startTime + 0.015);
+            gainNode.gain.exponentialRampToValueAtTime(0.06, startTime + 0.25);
+            gainNode.gain.exponentialRampToValueAtTime(0.0008, startTime + duration);
+
+            osc1.connect(filter);
+            osc2.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            osc1.start(startTime);
+            osc2.start(startTime);
+            osc1.stop(startTime + duration);
+            osc2.stop(startTime + duration);
+        }
+
+        function strumChord(chordObj) {
+            if (!chordObj || !chordObj.midi) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const strumDelay = 0.045; // 45ms between each string pluck
+            chordObj.midi.forEach((midiNote, idx) => {
+                const freq = midiToFreq(midiNote);
+                playGuitarNote(freq, now + idx * strumDelay, 2.2);
+            });
+        }
+
+        function playFeedbackSound(isCorrect) {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (isCorrect) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, now); // D5
+                osc.frequency.setValueAtTime(880, now + 0.08); // A5
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(190, now);
+                osc.frequency.linearRampToValueAtTime(140, now + 0.25);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+        }
+
+        function strumCurrentChord() {
+            if (currentQuestion && currentQuestion.chord) {
+                strumChord(currentQuestion.chord);
+            }
+        }
+
+        // --- SVG GUITAR FRETBOARD GENERATOR ---
+        function generateChordSVG(chord, width = 200, height = 235) {
+            const padLeft = 36;
+            const padRight = 24;
+            const padTop = 38;
+            const padBottom = 26;
+
+            const gridW = width - padLeft - padRight;
+            const gridH = height - padTop - padBottom;
+            const numStrings = 6;
+            const numFrets = 5;
+            const stringSpacing = gridW / (numStrings - 1);
+            const fretSpacing = gridH / numFrets;
+
+            // Determine base fret (default 1)
+            const activeFrets = chord.frets.filter(f => f > 0);
+            const maxFret = activeFrets.length ? Math.max(...activeFrets) : 1;
+            const minFret = activeFrets.length ? Math.min(...activeFrets) : 1;
+            const baseFret = maxFret > 5 ? minFret : 1;
+
+            let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" class="rounded-2xl bg-[#16100c] border border-amber-900/50">`;
+
+            // Fretboard wood background
+            svg += `<rect x="${padLeft}" y="${padTop}" width="${gridW}" height="${gridH}" fill="#261a12" rx="2"/>`;
+
+            // Top Nut (thick ivory bar if baseFret === 1)
+            if (baseFret === 1) {
+                svg += `<rect x="${padLeft - 2}" y="${padTop - 5}" width="${gridW + 4}" height="6" fill="#f5e6d3" rx="2"/>`;
+            } else {
+                svg += `<text x="${padLeft - 14}" y="${padTop + fretSpacing * 0.65}" fill="#f59e0b" font-size="12" font-weight="bold" text-anchor="middle">${baseFret}fr</text>`;
+            }
+
+            // Fret wires (horizontal lines)
+            for (let f = 0; f <= numFrets; f++) {
+                const y = padTop + f * fretSpacing;
+                svg += `<line x1="${padLeft}" y1="${y}" x2="${padLeft + gridW}" y2="${y}" stroke="#786252" stroke-width="1.5"/>`;
+            }
+
+            // Fretboard inlay dots (Fret 3 and Fret 5)
+            [3, 5].forEach(fNum => {
+                const relFret = fNum - baseFret + 1;
+                if (relFret >= 1 && relFret <= numFrets) {
+                    const cy = padTop + (relFret - 0.5) * fretSpacing;
+                    const cx = padLeft + gridW / 2;
+                    svg += `<circle cx="${cx}" cy="${cy}" r="4" fill="#443327"/>`;
+                }
+            });
+
+            // 6 Guitar Strings (vertical lines, thicker on bass strings)
+            const stringNames = ['E', 'A', 'D', 'G', 'B', 'e'];
+            for (let s = 0; s < numStrings; s++) {
+                const x = padLeft + s * stringSpacing;
+                const strokeW = 2.4 - s * 0.25;
+                svg += `<line x1="${x}" y1="${padTop}" x2="${x}" y2="${padTop + gridH}" stroke="#d6c5b3" stroke-width="${strokeW}" stroke-opacity="0.85"/>`;
+                // String name at bottom
+                svg += `<text x="${x}" y="${height - 7}" fill="#a89888" font-size="10" font-family="monospace" text-anchor="middle">${stringNames[s]}</text>`;
+            }
+
+            // Barre chord bar if present
+            if (chord.barre) {
+                const relFret = chord.barre.fret - baseFret + 1;
+                const startStrIdx = 6 - chord.barre.fromString;
+                const endStrIdx = 6 - chord.barre.toString;
+                const x1 = padLeft + Math.min(startStrIdx, endStrIdx) * stringSpacing;
+                const x2 = padLeft + Math.max(startStrIdx, endStrIdx) * stringSpacing;
+                const cy = padTop + (relFret - 0.5) * fretSpacing;
+                svg += `<rect x="${x1 - 8}" y="${cy - 8}" width="${x2 - x1 + 16}" height="16" rx="8" fill="#f59e0b" fill-opacity="0.85"/>`;
+            }
+
+            // Finger positions & Open/Muted indicators
+            for (let s = 0; s < numStrings; s++) {
+                const fret = chord.frets[s];
+                const finger = chord.fingers ? chord.fingers[s] : 0;
+                const x = padLeft + s * stringSpacing;
+
+                if (fret === -1) {
+                    // Muted string 'X'
+                    svg += `<text x="${x}" y="${padTop - 12}" fill="#ef4444" font-size="13" font-weight="bold" text-anchor="middle">✕</text>`;
+                } else if (fret === 0) {
+                    // Open string 'O'
+                    svg += `<circle cx="${x}" cy="${padTop - 16}" r="5.5" fill="none" stroke="#34d399" stroke-width="2"/>`;
+                } else {
+                    // Fretted note circle
+                    const relFret = fret - baseFret + 1;
+                    const cy = padTop + (relFret - 0.5) * fretSpacing;
+                    svg += `<circle cx="${x}" cy="${cy}" r="10.5" fill="#f59e0b" stroke="#18120e" stroke-width="1.5"/>`;
+                    if (finger > 0) {
+                        svg += `<text x="${x}" y="${cy + 4}" fill="#0f172a" font-size="11" font-weight="800" text-anchor="middle">${finger}</text>`;
+                    }
+                }
+            }
+
+            svg += `</svg>`;
+            return svg;
+        }
+
+        // --- FILTER & CATEGORY MANAGEMENT ---
+        function getActiveChords() {
+            if (customQuizChordIds && customQuizChordIds.length > 0) {
+                const customPool = CHORD_DATABASE.filter(c => customQuizChordIds.includes(c.id));
+                if (customPool.length > 0) return customPool;
+            }
+            return CHORD_DATABASE.filter(c => activeCategories.has(c.category));
+        }
+
+        function toggleCategory(catKey) {
+            customQuizChordIds = null;
+            document.getElementById('custom-quiz-banner').classList.add('hidden');
+            if (activeCategories.has(catKey)) {
+                // Prevent unselecting all categories
+                if (activeCategories.size <= 1) return;
+                activeCategories.delete(catKey);
+            } else {
+                activeCategories.add(catKey);
+            }
+            updateCategoryChipsUI();
+            if (currentTab === 'quiz') {
+                resetAndNextQuestion();
+            } else if (currentTab === 'flashcard') {
+                initFlashcards();
+            }
+        }
+
+        function exitCustomQuizPool() {
+            customQuizChordIds = null;
+            document.getElementById('custom-quiz-banner').classList.add('hidden');
+            resetAndNextQuestion();
+        }
+
+        function updateCategoryChipsUI() {
+            const cats = ['notes', 'basic', 'seventh'];
+            cats.forEach(c => {
+                const btn = document.getElementById(`cat-${c}`);
+                const icon = btn.querySelector('i');
+                if (activeCategories.has(c)) {
+                    btn.className = 'cat-chip px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border transition-all flex items-center gap-1.5 bg-amber-500/20 border-amber-500 text-amber-200';
+                    icon.className = 'fa-solid fa-check text-amber-400';
+                } else {
+                    btn.className = 'cat-chip px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border transition-all flex items-center gap-1.5 bg-stone-800/60 border-stone-700 text-stone-400';
+                    icon.className = 'fa-solid fa-plus text-stone-500';
+                }
+            });
+        }
+
+        // --- TAB NAVIGATION ---
+        function switchTab(tabName) {
+            currentTab = tabName;
+            stopTimer();
+            stopProgressionPlayback();
+
+            ['quiz', 'progression', 'flashcard', 'dictionary'].forEach(t => {
+                const view = document.getElementById(`view-${t}`);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tabName) {
+                    view.classList.remove('hidden');
+                    btn.className = 'tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 bg-amber-600 text-white shadow';
+                } else {
+                    view.classList.add('hidden');
+                    btn.className = 'tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-stone-300 hover:text-white';
+                }
+            });
+
+            // Hide category filter on full dictionary or progression view
+            const filterBar = document.getElementById('filter-bar');
+            if (tabName === 'dictionary') {
+                filterBar.classList.add('hidden');
+                renderDictionary();
+            } else if (tabName === 'progression') {
+                filterBar.classList.add('hidden');
+                renderProgressionView();
+            } else {
+                filterBar.classList.remove('hidden');
+                if (tabName === 'flashcard') initFlashcards();
+                if (tabName === 'quiz' && !currentQuestion) nextQuestion();
+            }
+        }
+
+        // --- MULTI-CHORD PROGRESSION BUILDER FUNCTIONS ---
+        function renderProgressionView() {
+            renderProgressionPicker();
+            renderProgressionSummaryPills();
+            renderProgressionCardsGrid();
+        }
+
+        function renderProgressionPicker() {
+            const picker = document.getElementById('prog-chord-picker');
+            if (!picker) return;
+
+            picker.innerHTML = CHORD_DATABASE.map(chord => {
+                const countInProg = selectedProgression.filter(id => id === chord.id).length;
+                const isSelected = countInProg > 0;
+                return `
+                    <button onclick="handlePickerChordClick('${chord.id}')" 
+                        class="px-3 py-1.5 rounded-xl font-mono text-xs sm:text-sm font-bold border transition-all flex items-center gap-1.5 ${
+                            isSelected 
+                                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20 scale-[1.02]' 
+                                : 'bg-[#140f0b] text-stone-300 border-stone-800 hover:border-amber-700/60 hover:text-white'
+                        }">
+                        <span>${chord.symbol}</span>
+                        <span class="font-sans font-normal text-[11px] ${isSelected ? 'text-slate-900 font-semibold' : 'text-stone-500'}">(${chord.shortName})</span>
+                        ${countInProg > 1 ? `<span class="px-1.5 py-0.2 rounded-full bg-slate-950 text-amber-400 text-[10px]">x${countInProg}</span>` : ''}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function handlePickerChordClick(chordId) {
+            const allowDuplicates = document.getElementById('prog-allow-duplicates').checked;
+            const existingIdx = selectedProgression.indexOf(chordId);
+
+            if (allowDuplicates) {
+                selectedProgression.push(chordId);
+                const chordObj = CHORD_DATABASE.find(c => c.id === chordId);
+                if (chordObj && document.getElementById('auto-audio-toggle').checked) strumChord(chordObj);
+            } else {
+                // Toggle On / Off behavior
+                if (existingIdx !== -1) {
+                    selectedProgression.splice(existingIdx, 1);
+                } else {
+                    selectedProgression.push(chordId);
+                    const chordObj = CHORD_DATABASE.find(c => c.id === chordId);
+                    if (chordObj && document.getElementById('auto-audio-toggle').checked) strumChord(chordObj);
+                }
+            }
+            renderProgressionView();
+        }
+
+        function applyPreset(symbolArray) {
+            stopProgressionPlayback();
+            const newIds = [];
+            symbolArray.forEach(sym => {
+                const found = CHORD_DATABASE.find(c => c.symbol.toLowerCase() === sym.toLowerCase());
+                if (found) newIds.push(found.id);
+            });
+            if (newIds.length > 0) {
+                selectedProgression = newIds;
+                document.getElementById('prog-text-input').value = symbolArray.join(' - ');
+                renderProgressionView();
+                // Strum first chord of preset
+                const firstChord = CHORD_DATABASE.find(c => c.id === newIds[0]);
+                if (firstChord && document.getElementById('auto-audio-toggle').checked) {
+                    strumChord(firstChord);
+                }
+            }
+        }
+
+        function handleQuickProgressionInput(e) {
+            e.preventDefault();
+            const raw = document.getElementById('prog-text-input').value.trim();
+            if (!raw) return;
+
+            // Split by spaces, hyphens, commas, or arrows
+            const tokens = raw.split(/[\s,\-➔>]+/).filter(Boolean);
+            const matchedIds = [];
+
+            tokens.forEach(tok => {
+                const normTok = tok.toLowerCase();
+                const found = CHORD_DATABASE.find(c => 
+                    c.symbol.toLowerCase() === normTok || 
+                    c.shortName.toLowerCase() === normTok
+                );
+                if (found) matchedIds.push(found.id);
+            });
+
+            if (matchedIds.length > 0) {
+                stopProgressionPlayback();
+                selectedProgression = matchedIds;
+                renderProgressionView();
+            }
+        }
+
+        function removeChordAtIndex(idx) {
+            stopProgressionPlayback();
+            selectedProgression.splice(idx, 1);
+            renderProgressionView();
+        }
+
+        function moveChordInProgression(idx, direction) {
+            const targetIdx = idx + direction;
+            if (targetIdx < 0 || targetIdx >= selectedProgression.length) return;
+            const temp = selectedProgression[idx];
+            selectedProgression[idx] = selectedProgression[targetIdx];
+            selectedProgression[targetIdx] = temp;
+            renderProgressionView();
+        }
+
+        function clearProgression() {
+            stopProgressionPlayback();
+            selectedProgression = [];
+            document.getElementById('prog-text-input').value = '';
+            renderProgressionView();
+        }
+
+        function renderProgressionSummaryPills() {
+            const countEl = document.getElementById('prog-count');
+            const container = document.getElementById('prog-summary-pills');
+            countEl.textContent = selectedProgression.length;
+
+            if (selectedProgression.length === 0) {
+                container.innerHTML = `<span class="text-xs text-stone-500 italic">Chưa chọn hợp âm nào</span>`;
+                return;
+            }
+
+            container.innerHTML = selectedProgression.map((id, idx) => {
+                const c = CHORD_DATABASE.find(item => item.id === id);
+                if (!c) return '';
+                const isActive = idx === progActivePlayIndex;
+                return `
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="strumChordById('${c.id}')" class="px-2.5 py-1 rounded-lg font-mono text-xs font-bold transition ${
+                            isActive 
+                                ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-300 scale-110' 
+                                : 'bg-amber-950/70 text-amber-300 border border-amber-700/40 hover:bg-amber-800/50'
+                        }">
+                            ${c.symbol} <span class="font-sans font-normal text-[10px] opacity-80">(${c.shortName})</span>
+                        </button>
+                        ${idx < selectedProgression.length - 1 ? `<i class="fa-solid fa-arrow-right text-[10px] text-stone-600"></i>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderProgressionCardsGrid() {
+            const grid = document.getElementById('prog-cards-grid');
+            if (selectedProgression.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full bg-[#1e1611] border border-dashed border-amber-900/50 rounded-3xl p-12 text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-950/60 border border-amber-800/40 flex items-center justify-center text-amber-400 text-2xl mx-auto mb-3">
+                            <i class="fa-solid fa-hand-pointer"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-white">Hãy bấm chọn các hợp âm ở bảng phía trên!</h3>
+                        <p class="text-xs text-stone-400 mt-1 max-w-md mx-auto">
+                            Ví dụ: Bấm vào <b>C</b>, <b>G</b>, <b>Am</b>, <b>F</b> hoặc chọn các nút "Vòng Hợp Âm Kinh Điển" để hiện đồng thời tất cả sơ đồ thế bấm và tên hợp âm.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = selectedProgression.map((id, idx) => {
+                const c = CHORD_DATABASE.find(item => item.id === id);
+                if (!c) return '';
+                const isPlayingNow = idx === progActivePlayIndex;
+
+                return `
+                    <div id="prog-card-${idx}" class="relative rounded-3xl p-5 flex flex-col items-center justify-between transition-all duration-300 ${
+                        isPlayingNow 
+                            ? 'bg-gradient-to-b from-amber-950/90 to-[#1e1611] border-2 border-amber-400 shadow-2xl shadow-amber-500/20 scale-[1.02]' 
+                            : 'bg-[#1e1611] border border-amber-900/40 hover:border-amber-700/60 shadow-xl'
+                    }">
+                        <!-- Step Number & Card Controls -->
+                        <div class="w-full flex items-center justify-between border-b border-stone-800/80 pb-2.5 mb-3">
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
+                                isPlayingNow ? 'bg-amber-400 text-slate-950' : 'bg-stone-800 text-amber-400'
+                            }">
+                                #${idx + 1}
+                            </span>
+
+                            <div class="flex items-center gap-1">
+                                <button onclick="moveChordInProgression(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Sang trái" class="w-7 h-7 rounded-lg bg-stone-900 hover:bg-stone-800 disabled:opacity-30 text-stone-300 text-xs flex items-center justify-center transition">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </button>
+                                <button onclick="moveChordInProgression(${idx}, 1)" ${idx === selectedProgression.length - 1 ? 'disabled' : ''} title="Sang phải" class="w-7 h-7 rounded-lg bg-stone-900 hover:bg-stone-800 disabled:opacity-30 text-stone-300 text-xs flex items-center justify-center transition">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                                <button onclick="removeChordAtIndex(${idx})" title="Bỏ hợp âm này" class="w-7 h-7 rounded-lg bg-red-950/50 hover:bg-red-600 text-red-300 hover:text-white text-xs flex items-center justify-center transition ml-1">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Chord Symbol & Vietnamese Name -->
+                        <div class="text-center mb-2">
+                            <div class="text-4xl font-extrabold text-amber-400 font-mono tracking-tight">${c.symbol}</div>
+                            <div class="text-base font-bold text-white mt-0.5">${c.name}</div>
+                            <div class="text-[11px] text-amber-300/80 font-mono mt-0.5">${c.notes}</div>
+                        </div>
+
+                        <!-- 6-String Fretboard SVG -->
+                        <div onclick="strumChordById('${c.id}')" class="cursor-pointer my-1" title="Bấm để nghe tiếng rải hợp âm ${c.symbol}">
+                            ${generateChordSVG(c, 195, 225)}
+                        </div>
+
+                        <!-- Finger Guide & Strum Button -->
+                        <div class="w-full mt-3 space-y-2.5">
+                            <div class="bg-[#140f0b] p-2.5 rounded-xl border border-stone-800 text-[11px] text-stone-300 leading-relaxed text-center">
+                                ${c.guide}
+                            </div>
+                            <button onclick="strumChordById('${c.id}')" class="w-full py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 font-bold text-xs transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-volume-high"></i> Nghe tiếng ${c.symbol} (${c.shortName})
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function togglePlayProgression() {
+            if (progPlayInterval) {
+                stopProgressionPlayback();
+            } else {
+                startProgressionPlayback();
+            }
+        }
+
+        function startProgressionPlayback() {
+            if (selectedProgression.length === 0) return;
+            const speedMs = parseInt(document.getElementById('prog-speed').value, 10) || 2000;
+            const btn = document.getElementById('prog-play-btn');
+            btn.className = 'px-4 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-white font-extrabold text-xs sm:text-sm transition flex items-center gap-2 shadow-lg strumming';
+            btn.innerHTML = `<i class="fa-solid fa-stop"></i> <span>Dừng Phát</span>`;
+
+            progActivePlayIndex = 0;
+            triggerProgressionStep();
+
+            progPlayInterval = setInterval(() => {
+                progActivePlayIndex = (progActivePlayIndex + 1) % selectedProgression.length;
+                triggerProgressionStep();
+            }, speedMs);
+        }
+
+        function triggerProgressionStep() {
+            renderProgressionSummaryPills();
+            renderProgressionCardsGrid();
+            const currentId = selectedProgression[progActivePlayIndex];
+            const chordObj = CHORD_DATABASE.find(c => c.id === currentId);
+            if (chordObj) strumChord(chordObj);
+        }
+
+        function stopProgressionPlayback() {
+            if (progPlayInterval) {
+                clearInterval(progPlayInterval);
+                progPlayInterval = null;
+            }
+            progActivePlayIndex = -1;
+            const btn = document.getElementById('prog-play-btn');
+            if (btn) {
+                btn.className = 'px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm transition flex items-center gap-2 shadow-lg';
+                btn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Phát Cả Vòng (Loop)</span>`;
+            }
+            if (currentTab === 'progression') {
+                renderProgressionSummaryPills();
+                renderProgressionCardsGrid();
+            }
+        }
+
+        function restartLoopIfPlaying() {
+            if (progPlayInterval) {
+                stopProgressionPlayback();
+                startProgressionPlayback();
+            }
+        }
+
+        function practiceProgressionInQuiz() {
+            if (selectedProgression.length === 0) return;
+            // Deduplicate chord IDs for the quiz pool
+            customQuizChordIds = [...new Set(selectedProgression)];
+            document.getElementById('custom-quiz-banner').classList.remove('hidden');
+            switchTab('quiz');
+            resetAndNextQuestion();
+        }
+
+        // --- CORE QUIZ & SPACED REPETITION ENGINE ---
+        function pickWeightedRandomChord(pool) {
+            // Avoid repeating the exact same chord twice in a row if pool > 1
+            const candidates = pool.length > 1 ? pool.filter(c => c.id !== lastChordId) : pool;
+            let totalWeight = 0;
+            candidates.forEach(c => {
+                totalWeight += (chordWeights[c.id] || 10);
+            });
+
+            let rand = Math.random() * totalWeight;
+            for (const c of candidates) {
+                const w = chordWeights[c.id] || 10;
+                if (rand < w) return c;
+                rand -= w;
+            }
+            return candidates[0];
+        }
+
+        function getDisplayPromptForChord(chord, askType) {
+            if (askType === 'sym2name') {
+                // Example: "Câu 1: C là ...."
+                return {
+                    target: chord.symbol,
+                    correctDisplay: chord.category === 'notes' ? `${chord.shortName} (${chord.name})` : chord.name,
+                    optionLabelFn: (c) => c.category === 'notes' ? `${c.shortName} (Hợp âm ${c.shortName} trưởng)` : c.name
+                };
+            } else {
+                // Example: "Câu 3: La là ...." or "Câu 4: Rê thứ là ...."
+                const vnPrompt = chord.category === 'notes' ? chord.shortName : chord.name;
+                return {
+                    target: vnPrompt,
+                    correctDisplay: chord.symbol,
+                    optionLabelFn: (c) => c.symbol
+                };
+            }
+        }
+
+        function resetAndNextQuestion() {
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            stopTimer();
+            isAnswered = false;
+
+            const pool = getActiveChords();
+            const chosenChord = pickWeightedRandomChord(pool);
+            lastChordId = chosenChord.id;
+
+            // Determine question direction
+            const dirSetting = document.getElementById('quiz-direction').value;
+            let askType = dirSetting;
+            if (dirSetting === 'mixed') {
+                askType = Math.random() < 0.55 ? 'sym2name' : 'name2sym';
+            }
+
+            const promptData = getDisplayPromptForChord(chosenChord, askType);
+
+            // Generate 3 distractors from the same or full database
+            const distractorPool = pool.length >= 4 ? pool : CHORD_DATABASE;
+            const otherChords = distractorPool.filter(c => c.id !== chosenChord.id);
+            const shuffledOthers = otherChords.sort(() => Math.random() - 0.5).slice(0, 3);
+
+            const optionChords = [chosenChord, ...shuffledOthers].sort(() => Math.random() - 0.5);
+            const options = optionChords.map(c => ({
+                chordId: c.id,
+                label: promptData.optionLabelFn(c),
+                isCorrect: c.id === chosenChord.id
+            }));
+
+            currentQuestion = {
+                number: questionCounter,
+                chord: chosenChord,
+                askType,
+                targetText: promptData.target,
+                correctDisplay: promptData.correctDisplay,
+                options
+            };
+
+            renderQuizQuestion();
+            startTimerIfEnabled();
+        }
+
+        function renderQuizQuestion() {
+            const q = currentQuestion;
+            document.getElementById('question-number-badge').textContent = `Câu ${q.number}`;
+            document.getElementById('question-category-badge').textContent = q.chord.categoryLabel;
+
+            // Show badge if this chord has elevated weight due to past error
+            const repBadge = document.getElementById('repeat-badge');
+            if ((chordWeights[q.chord.id] || 10) > 15) {
+                repBadge.classList.remove('hidden');
+            } else {
+                repBadge.classList.add('hidden');
+            }
+
+            // Render prompt: "Câu 1: C là ...."
+            document.getElementById('q-prefix').textContent = `Câu ${q.number}:`;
+            document.getElementById('q-target').textContent = q.targetText;
+            const qBlank = document.getElementById('q-blank');
+            qBlank.textContent = '....';
+            qBlank.className = 'px-4 py-1 rounded-xl bg-amber-950/60 border-2 border-dashed border-amber-500/50 text-amber-200 min-w-[120px] inline-block text-center';
+
+            // Subtitle instruction
+            const subtitle = document.getElementById('question-subtitle');
+            if (q.askType === 'sym2name') {
+                subtitle.textContent = 'Ký hiệu này là nốt / hợp âm gì?';
+            } else {
+                subtitle.textContent = 'Tên gọi này có ký hiệu hợp âm là gì?';
+            }
+
+            // Render Multiple Choice Buttons
+            const mcqContainer = document.getElementById('mcq-container');
+            mcqContainer.innerHTML = '';
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.id = `mcq-opt-${idx}`;
+                btn.onclick = () => submitMCQAnswer(idx);
+                btn.className = 'mcq-btn group relative w-full p-4 rounded-2xl bg-[#16100c] hover:bg-[#2c2017] border-2 border-amber-900/50 hover:border-amber-500/80 text-left transition-all flex items-center justify-between shadow-md';
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-amber-950/80 border border-amber-700/50 text-amber-400 font-mono font-bold text-sm flex items-center justify-center group-hover:bg-amber-500 group-hover:text-slate-950 transition">
+                            ${idx + 1}
+                        </span>
+                        <span class="font-bold text-base sm:text-lg text-stone-100 group-hover:text-white">${opt.label}</span>
+                    </div>
+                    <i class="fa-solid fa-circle-chevron-right text-stone-600 group-hover:text-amber-400 transition"></i>
+                `;
+                mcqContainer.appendChild(btn);
+            });
+
+            // Reset Typing Input
+            const typingInput = document.getElementById('typing-input');
+            typingInput.value = '';
+            typingInput.disabled = false;
+            if (document.getElementById('quiz-input-mode').value === 'typing') {
+                setTimeout(() => typingInput.focus(), 50);
+            }
+
+            // Hide feedback banner
+            document.getElementById('feedback-panel').classList.add('hidden');
+
+            // Update Fretboard Panel
+            populateDiagramPanel(q.chord);
+            updateDiagramVisibility();
+        }
+
+        function changeInputMode() {
+            const mode = document.getElementById('quiz-input-mode').value;
+            const mcqBox = document.getElementById('mcq-container');
+            const typingBox = document.getElementById('typing-container');
+            if (mode === 'mcq') {
+                mcqBox.classList.remove('hidden');
+                typingBox.classList.add('hidden');
+            } else {
+                mcqBox.classList.add('hidden');
+                typingBox.classList.remove('hidden');
+                document.getElementById('typing-input').focus();
+            }
+        }
+
+        // Normalize Vietnamese text for forgiving typing comparison
+        function normalizeVi(str) {
+            return str
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, ' ');
+        }
+
+        function removeVietnameseTones(str) {
+            return str
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/đ/g, 'd')
+                .replace(/Đ/g, 'D');
+        }
+
+        function handleTypingSubmit(e) {
+            e.preventDefault();
+            if (isAnswered) {
+                nextQuestion();
+                return;
+            }
+            const rawVal = document.getElementById('typing-input').value;
+            if (!rawVal.trim()) return;
+
+            const userNorm = normalizeVi(rawVal);
+            const userNoTone = removeVietnameseTones(userNorm);
+
+            const q = currentQuestion;
+            let isCorrect = false;
+
+            if (q.askType === 'sym2name') {
+                // Check against accepted Vietnamese names
+                isCorrect = q.chord.acceptedAnswers.some(ans => {
+                    const ansNorm = normalizeVi(ans);
+                    return ansNorm === userNorm || removeVietnameseTones(ansNorm) === userNoTone;
+                });
+            } else {
+                // Check against chord symbol (case-insensitive)
+                isCorrect = userNorm === q.chord.symbol.toLowerCase();
+            }
+
+            processAnswerResult(isCorrect, rawVal.trim());
+        }
+
+        function submitMCQAnswer(optionIndex) {
+            if (isAnswered) return;
+            const chosenOpt = currentQuestion.options[optionIndex];
+            if (!chosenOpt) return;
+
+            // Highlight buttons
+            currentQuestion.options.forEach((opt, idx) => {
+                const btn = document.getElementById(`mcq-opt-${idx}`);
+                btn.disabled = true;
+                if (opt.isCorrect) {
+                    btn.className = 'w-full p-4 rounded-2xl bg-emerald-950/80 border-2 border-emerald-500 text-left flex items-center justify-between shadow-lg';
+                } else if (idx === optionIndex && !opt.isCorrect) {
+                    btn.className = 'w-full p-4 rounded-2xl bg-red-950/80 border-2 border-red-500 text-left flex items-center justify-between opacity-90';
+                } else {
+                    btn.className = 'w-full p-4 rounded-2xl bg-[#16100c] border-2 border-stone-800 text-left flex items-center justify-between opacity-45';
+                }
+            });
+
+            processAnswerResult(chosenOpt.isCorrect, chosenOpt.label);
+        }
+
+        function processAnswerResult(isCorrect, userAnswerText, isTimeout = false) {
+            isAnswered = true;
+            stopTimer();
+            questionCounter++;
+
+            const q = currentQuestion;
+
+            // Update blank in prompt
+            const qBlank = document.getElementById('q-blank');
+            qBlank.textContent = q.correctDisplay;
+            if (isCorrect) {
+                qBlank.className = 'px-4 py-1 rounded-xl bg-emerald-500/20 border-2 border-emerald-500 text-emerald-300 font-extrabold inline-block text-center';
+            } else {
+                qBlank.className = 'px-4 py-1 rounded-xl bg-red-500/20 border-2 border-red-500 text-amber-300 font-extrabold inline-block text-center';
+            }
+
+            // Update Spaced Repetition Weights & Stats
+            stats.total++;
+            if (isCorrect) {
+                stats.correct++;
+                stats.streak++;
+                chordWeights[q.chord.id] = Math.max(5, (chordWeights[q.chord.id] || 10) - 2);
+            } else {
+                stats.streak = 0;
+                // Boost weight so this chord repeats soon!
+                chordWeights[q.chord.id] = Math.min(45, (chordWeights[q.chord.id] || 10) + 18);
+            }
+
+            updateStatsUI();
+
+            // Audio feedback
+            const autoAudio = document.getElementById('auto-audio-toggle').checked;
+            if (autoAudio) {
+                strumChord(q.chord);
+            } else {
+                playFeedbackSound(isCorrect);
+            }
+
+            // Reveal Fretboard Diagram
+            updateDiagramVisibility();
+
+            // Show feedback panel
+            const fbPanel = document.getElementById('feedback-panel');
+            const fbIcon = document.getElementById('feedback-icon');
+            const fbTitle = document.getElementById('feedback-title');
+            const fbDetail = document.getElementById('feedback-detail');
+
+            fbPanel.classList.remove('hidden');
+            if (isCorrect) {
+                fbPanel.className = 'mt-6 p-4 rounded-2xl border bg-emerald-950/50 border-emerald-600/50 flex flex-col sm:flex-row items-center justify-between gap-4';
+                fbIcon.className = 'w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg shrink-0';
+                fbIcon.innerHTML = '<i class="fa-solid fa-check"></i>';
+                fbTitle.className = 'font-bold text-base text-emerald-300';
+                fbTitle.textContent = 'Chính xác tuyệt vời!';
+                fbDetail.textContent = `${q.chord.symbol} là ${q.chord.name} (${q.chord.notes})`;
+            } else {
+                fbPanel.className = 'mt-6 p-4 rounded-2xl border bg-red-950/50 border-red-600/50 flex flex-col sm:flex-row items-center justify-between gap-4';
+                fbIcon.className = 'w-10 h-10 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center text-lg shrink-0';
+                fbIcon.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                fbTitle.className = 'font-bold text-base text-red-300';
+                fbTitle.textContent = isTimeout ? 'Hết thời gian suy nghĩ!' : `Chưa đúng (Bạn chọn: ${userAnswerText})`;
+                fbDetail.textContent = `Đáp án đúng: ${q.targetText} là ${q.correctDisplay}. Hệ thống sẽ lặp lại câu này sau!`;
+            }
+
+            // Add to history stream
+            historyLog.unshift({
+                num: q.number,
+                target: q.targetText,
+                answer: q.correctDisplay,
+                isCorrect,
+                chordSymbol: q.chord.symbol
+            });
+            if (historyLog.length > 20) historyLog.pop();
+            renderHistoryLog();
+        }
+
+        function updateStatsUI() {
+            document.getElementById('stat-total').textContent = stats.total;
+            document.getElementById('stat-streak').textContent = stats.streak;
+            const acc = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 100;
+            document.getElementById('stat-accuracy').textContent = `${acc}%`;
+        }
+
+        function renderHistoryLog() {
+            const container = document.getElementById('history-list');
+            if (historyLog.length === 0) {
+                container.innerHTML = `<span class="text-xs text-stone-500 italic">Chưa có câu trả lời nào. Hãy bắt đầu câu số 1!</span>`;
+                return;
+            }
+            container.innerHTML = historyLog.map(item => `
+                <div class="shrink-0 px-3 py-2 rounded-xl border text-xs flex items-center gap-2 ${
+                    item.isCorrect 
+                        ? 'bg-emerald-950/30 border-emerald-700/40 text-emerald-200' 
+                        : 'bg-red-950/40 border-red-700/50 text-red-200'
+                }">
+                    <span class="font-mono font-bold text-stone-400">Câu ${item.num}:</span>
+                    <span class="font-bold text-amber-300">${item.target}</span>
+                    <span>là</span>
+                    <span class="font-bold underline">${item.answer}</span>
+                    <i class="fa-solid ${item.isCorrect ? 'fa-circle-check text-emerald-400' : 'fa-circle-xmark text-red-400'}"></i>
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() {
+            historyLog = [];
+            questionCounter = 1;
+            stats = { total: 0, correct: 0, streak: 0 };
+            updateStatsUI();
+            renderHistoryLog();
+            nextQuestion();
+        }
+
+        // --- FRETBOARD DIAGRAM PANEL UPDATES ---
+        function populateDiagramPanel(chord) {
+            document.getElementById('diag-symbol').textContent = chord.symbol;
+            document.getElementById('diag-name').textContent = chord.name;
+            document.getElementById('diag-formula').textContent = `Nốt cấu tạo: ${chord.notes}`;
+            document.getElementById('quiz-svg-holder').innerHTML = generateChordSVG(chord, 210, 240);
+            document.getElementById('diag-fingers').innerHTML = `
+                <div class="font-bold text-amber-400 mb-1"><i class="fa-regular fa-hand-point-right mr-1"></i> Hướng dẫn đặt ngón tay:</div>
+                <p class="leading-relaxed">${chord.guide}</p>
+            `;
+        }
+
+        function updateDiagramVisibility() {
+            const alwaysShow = document.getElementById('always-show-diagram').checked;
+            const mystery = document.getElementById('diagram-mystery');
+            const content = document.getElementById('diagram-content');
+
+            if (isAnswered || alwaysShow) {
+                mystery.classList.add('hidden');
+                content.classList.remove('hidden');
+            } else {
+                mystery.classList.remove('hidden');
+                content.classList.add('hidden');
+            }
+        }
+
+        // --- COUNTDOWN TIMER FOR REFLEX TRAINING ---
+        function updateTimerSetting() {
+            timerSeconds = parseInt(document.getElementById('quiz-timer-setting').value, 10) || 0;
+            resetAndNextQuestion();
+        }
+
+        function startTimerIfEnabled() {
+            const barContainer = document.getElementById('timer-bar-container');
+            const bar = document.getElementById('timer-bar');
+            if (timerSeconds <= 0) {
+                barContainer.classList.add('hidden');
+                return;
+            }
+            barContainer.classList.remove('hidden');
+            timeRemaining = timerSeconds * 1000;
+            const totalMs = timeRemaining;
+            bar.style.width = '100%';
+
+            timerInterval = setInterval(() => {
+                timeRemaining -= 100;
+                const pct = Math.max(0, (timeRemaining / totalMs) * 100);
+                bar.style.width = `${pct}%`;
+
+                if (timeRemaining <= 0) {
+                    stopTimer();
+                    if (!isAnswered) {
+                        processAnswerResult(false, 'Hết giờ', true);
+                    }
+                }
+            }, 100);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // --- FLASHCARDS MODE ---
+        function initFlashcards() {
+            flashcardDeck = [...getActiveChords()];
+            fcIndex = 0;
+            isCardFlipped = false;
+            renderCurrentFlashcard();
+        }
+
+        function renderCurrentFlashcard() {
+            if (flashcardDeck.length === 0) return;
+            const chord = flashcardDeck[fcIndex];
+            isCardFlipped = false;
+            document.getElementById('fc-inner').classList.remove('rotate-y-180');
+
+            document.getElementById('fc-counter').textContent = `Thẻ ${fcIndex + 1} / ${flashcardDeck.length}`;
+            document.getElementById('fc-front-cat').textContent = chord.categoryLabel;
+            document.getElementById('fc-front-symbol').textContent = chord.symbol;
+            document.getElementById('fc-front-prompt').textContent = `${chord.symbol} là ....`;
+
+            document.getElementById('fc-back-symbol').textContent = chord.symbol;
+            document.getElementById('fc-back-name').textContent = chord.name;
+            document.getElementById('fc-back-notes').textContent = `Nốt cấu tạo: ${chord.notes}`;
+            document.getElementById('fc-svg-holder').innerHTML = generateChordSVG(chord, 195, 225);
+            document.getElementById('fc-back-tip').textContent = chord.guide;
+        }
+
+        function flipCard() {
+            isCardFlipped = !isCardFlipped;
+            const inner = document.getElementById('fc-inner');
+            if (isCardFlipped) {
+                inner.classList.add('rotate-y-180');
+                if (document.getElementById('auto-audio-toggle').checked) {
+                    strumFlashcardChord();
+                }
+            } else {
+                inner.classList.remove('rotate-y-180');
+            }
+        }
+
+        function nextFlashcard() {
+            fcIndex = (fcIndex + 1) % flashcardDeck.length;
+            renderCurrentFlashcard();
+        }
+
+        function prevFlashcard() {
+            fcIndex = (fcIndex - 1 + flashcardDeck.length) % flashcardDeck.length;
+            renderCurrentFlashcard();
+        }
+
+        function shuffleFlashcards() {
+            flashcardDeck.sort(() => Math.random() - 0.5);
+            fcIndex = 0;
+            renderCurrentFlashcard();
+        }
+
+        function strumFlashcardChord() {
+            if (flashcardDeck[fcIndex]) {
+                strumChord(flashcardDeck[fcIndex]);
+            }
+        }
+
+        // --- DICTIONARY VIEW ---
+        function renderDictionary() {
+            const query = normalizeVi(document.getElementById('dict-search').value || '');
+            const queryNoTone = removeVietnameseTones(query);
+            const grid = document.getElementById('dictionary-grid');
+
+            const filtered = CHORD_DATABASE.filter(c => {
+                if (!query) return true;
+                const symMatch = c.symbol.toLowerCase().includes(query);
+                const nameNorm = normalizeVi(c.name);
+                const nameMatch = nameNorm.includes(query) || removeVietnameseTones(nameNorm).includes(queryNoTone);
+                return symMatch || nameMatch;
+            });
+
+            grid.innerHTML = filtered.map(c => `
+                <div class="bg-[#1e1611] border border-amber-900/40 hover:border-amber-600/60 rounded-2xl p-4 flex flex-col items-center justify-between shadow-lg transition">
+                    <div class="w-full flex items-center justify-between mb-2">
+                        <div>
+                            <span class="text-2xl font-extrabold text-amber-400 font-mono">${c.symbol}</span>
+                            <span class="text-stone-400 mx-1">•</span>
+                            <span class="text-base font-bold text-white">${c.name}</span>
+                        </div>
+                        <button onclick="strumChordById('${c.id}')" title="Nghe thử âm thanh" class="w-9 h-9 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 flex items-center justify-center transition">
+                            <i class="fa-solid fa-volume-high"></i>
+                        </button>
+                    </div>
+                    <div class="my-1">
+                        ${generateChordSVG(c, 185, 215)}
+                    </div>
+                    <div class="w-full mt-2 pt-2 border-t border-stone-800 text-[11px] text-stone-300 text-center">
+                        <p class="font-semibold text-amber-300/90 mb-0.5">${c.notes}</p>
+                        <p class="text-stone-400 line-clamp-2">${c.guide}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function strumChordById(id) {
+            const chord = CHORD_DATABASE.find(c => c.id === id);
+            if (chord) strumChord(chord);
+        }
+
+        // --- KEYBOARD SHORTCUTS ---
+        window.addEventListener('keydown', (e) => {
+            // Ignore shortcuts when typing inside input box
+            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT')) {
+                return;
+            }
+
+            if (currentTab === 'quiz') {
+                const mode = document.getElementById('quiz-input-mode').value;
+                if (!isAnswered && mode === 'mcq') {
+                    if (['1', '2', '3', '4'].includes(e.key)) {
+                        e.preventDefault();
+                        submitMCQAnswer(parseInt(e.key, 10) - 1);
+                    }
+                } else if (isAnswered && (e.code === 'Space' || e.code === 'Enter')) {
+                    e.preventDefault();
+                    nextQuestion();
+                }
+            } else if (currentTab === 'flashcard') {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    flipCard();
+                } else if (e.code === 'ArrowRight') {
+                    nextFlashcard();
+                } else if (e.code === 'ArrowLeft') {
+                    prevFlashcard();
+                }
+            }
+        });
+
+        // Initialize on page load
+        window.onload = function() {
+            updateCategoryChipsUI();
+            nextQuestion();
+        };
+    </script>
+</body>
+</html>
