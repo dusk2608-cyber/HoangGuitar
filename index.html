@@ -95,6 +95,54 @@
         .chord-svg-container svg {
             filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
         }
+
+        /* Metronome Beat Flash Animations */
+        @keyframes beat-pop-accent {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.22); box-shadow: 0 0 24px rgba(245, 158, 11, 0.85); }
+            100% { transform: scale(1); }
+        }
+        @keyframes beat-pop-normal {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.16); box-shadow: 0 0 18px rgba(16, 185, 129, 0.75); }
+            100% { transform: scale(1); }
+        }
+        .beat-active-accent {
+            animation: beat-pop-accent 0.22s ease-out;
+        }
+        .beat-active-normal {
+            animation: beat-pop-normal 0.22s ease-out;
+        }
+
+        /* Custom Range Slider */
+        input[type=range].tempo-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type=range].tempo-slider::-webkit-slider-runnable-track {
+            background: #2c2018;
+            height: 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(217, 119, 6, 0.3);
+        }
+        input[type=range].tempo-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -6px;
+            background-color: #f59e0b;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            border: 2px solid #fffbeb;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+            transition: transform 0.15s ease;
+        }
+        input[type=range].tempo-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background-color: #fbbf24;
+        }
     </style>
 </head>
 <body class="antialiased selection:bg-amber-500 selection:text-slate-950 flex flex-col min-h-screen">
@@ -112,30 +160,117 @@
                         GuitarMemo
                         <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">Học Hợp Âm Nhanh</span>
                     </h1>
-                    <p class="text-xs text-stone-400 hidden sm:block">Luyện phản xạ ký hiệu & thế bấm hợp âm lặp lại thông minh</p>
+                    <p class="text-xs text-stone-400 hidden sm:block">Luyện phản xạ ký hiệu, xếp vòng hợp âm & máy đếm nhịp Metronome</p>
                 </div>
             </div>
 
-            <!-- Navigation Tabs -->
-            <nav class="flex flex-wrap items-center bg-[#231a14] p-1 rounded-xl border border-amber-900/40 gap-1">
-                <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 bg-amber-600 text-white shadow">
-                    <i class="fa-solid fa-bolt"></i>
-                    <span>Luyện Phản Xạ</span>
+            <!-- Navigation Tabs & Quick Metronome Toggle -->
+            <div class="flex flex-wrap items-center gap-2">
+                <nav class="flex flex-wrap items-center bg-[#231a14] p-1 rounded-xl border border-amber-900/40 gap-1">
+                    <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 bg-amber-600 text-white shadow">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Luyện Phản Xạ</span>
+                    </button>
+                    <button onclick="switchTab('progression')" id="tab-progression" class="tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-stone-300 hover:text-white">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span>Xếp Chuỗi Hợp Âm</span>
+                    </button>
+                    <button onclick="switchTab('flashcard')" id="tab-flashcard" class="tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-stone-300 hover:text-white">
+                        <i class="fa-solid fa-clone"></i>
+                        <span>Thẻ Ghi Nhớ</span>
+                    </button>
+                    <button onclick="switchTab('dictionary')" id="tab-dictionary" class="tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-stone-300 hover:text-white">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Bảng Tra Cứu</span>
+                    </button>
+                </nav>
+
+                <!-- Persistent Metronome Drawer Toggle Button -->
+                <button onclick="toggleMetronomeDrawer()" id="header-metro-btn" class="px-3 py-2 rounded-xl bg-[#291e16] hover:bg-amber-900/50 border border-amber-700/50 text-amber-300 text-xs sm:text-sm font-bold transition flex items-center gap-2 shadow">
+                    <i class="fa-solid fa-gauge-simple-high text-amber-400" id="header-metro-icon"></i>
+                    <span id="header-metro-bpm" class="font-mono">80 BPM</span>
+                    <span id="header-metro-dot" class="w-2 h-2 rounded-full bg-stone-600"></span>
                 </button>
-                <button onclick="switchTab('progression')" id="tab-progression" class="tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-stone-300 hover:text-white">
-                    <i class="fa-solid fa-sliders"></i>
-                    <span>Xếp Chuỗi Hợp Âm</span>
-                    <span class="px-1.5 py-0.2 text-[10px] rounded bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold">Mới</span>
-                </button>
-                <button onclick="switchTab('flashcard')" id="tab-flashcard" class="tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-stone-300 hover:text-white">
-                    <i class="fa-solid fa-clone"></i>
-                    <span>Thẻ Ghi Nhớ</span>
-                </button>
-                <button onclick="switchTab('dictionary')" id="tab-dictionary" class="tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-stone-300 hover:text-white">
-                    <i class="fa-solid fa-book-open"></i>
-                    <span>Bảng Tra Cứu</span>
-                </button>
-            </nav>
+            </div>
+        </div>
+
+        <!-- Collapsible Persistent Metronome Panel -->
+        <div id="metronome-drawer" class="hidden border-t border-amber-800/40 bg-gradient-to-b from-[#221811] to-[#17110c] shadow-2xl">
+            <div class="max-w-6xl mx-auto px-4 py-4">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+                    
+                    <!-- Left: BPM Number, Tempo Marking & Play/Stop + Tap Tempo (4 cols) -->
+                    <div class="lg:col-span-4 flex items-center justify-between sm:justify-start gap-4 bg-[#140f0b] p-3.5 rounded-2xl border border-amber-900/40">
+                        <div class="flex items-center gap-3">
+                            <button onclick="toggleMetronome()" id="metro-main-play-btn" class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 flex items-center justify-center text-xl font-extrabold shadow-lg shadow-amber-500/20 transition shrink-0">
+                                <i class="fa-solid fa-play ml-0.5"></i>
+                            </button>
+                            <div>
+                                <div class="flex items-baseline gap-1.5">
+                                    <span id="metro-bpm-display" class="text-3xl sm:text-4xl font-extrabold font-mono text-amber-400 tracking-tight">80</span>
+                                    <span class="text-xs font-bold uppercase text-stone-400">BPM</span>
+                                </div>
+                                <span id="metro-tempo-label" class="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                                    Andante (Vừa phải)
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-1.5">
+                            <button onclick="handleTapTempo()" id="tap-tempo-btn" class="px-3 py-2 rounded-xl bg-[#271d15] hover:bg-amber-900/60 active:scale-95 border border-amber-700/50 text-amber-200 text-xs font-bold transition flex items-center justify-center gap-1.5" title="Bấm liên tục theo nhịp bài hát để dò BPM">
+                                <i class="fa-solid fa-hand-pointer text-amber-400"></i>
+                                <span>Chạm Dò Nhịp</span>
+                            </button>
+                            <span class="text-[10px] text-stone-500 text-center">Bấm liên tục theo nhịp</span>
+                        </div>
+                    </div>
+
+                    <!-- Center: Slider, Fine Tune Buttons & Quick Presets (5 cols) -->
+                    <div class="lg:col-span-5 space-y-3">
+                        <div class="flex items-center gap-2">
+                            <button onclick="adjustBpm(-5)" class="px-2.5 py-1.5 rounded-lg bg-[#251b14] hover:bg-amber-900/50 border border-stone-700 text-stone-200 font-mono text-xs font-bold transition">-5</button>
+                            <button onclick="adjustBpm(-1)" class="px-2.5 py-1.5 rounded-lg bg-[#251b14] hover:bg-amber-900/50 border border-stone-700 text-stone-200 font-mono text-xs font-bold transition">-1</button>
+                            <input type="range" id="metro-bpm-slider" min="40" max="220" value="80" oninput="setBpm(this.value)" class="tempo-slider flex-1 mx-1">
+                            <button onclick="adjustBpm(1)" class="px-2.5 py-1.5 rounded-lg bg-[#251b14] hover:bg-amber-900/50 border border-stone-700 text-stone-200 font-mono text-xs font-bold transition">+1</button>
+                            <button onclick="adjustBpm(5)" class="px-2.5 py-1.5 rounded-lg bg-[#251b14] hover:bg-amber-900/50 border border-stone-700 text-stone-200 font-mono text-xs font-bold transition">+5</button>
+                        </div>
+
+                        <!-- Quick BPM Presets -->
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-[11px] text-stone-400 font-semibold mr-1">Mức tập nhanh:</span>
+                            <button onclick="setBpm(60)" class="px-2 py-1 rounded-lg bg-[#140f0b] hover:bg-amber-950 border border-stone-800 hover:border-amber-700 text-[11px] text-stone-300 font-mono transition">60 (Mới tập)</button>
+                            <button onclick="setBpm(75)" class="px-2 py-1 rounded-lg bg-[#140f0b] hover:bg-amber-950 border border-stone-800 hover:border-amber-700 text-[11px] text-stone-300 font-mono transition">75 (Ballad)</button>
+                            <button onclick="setBpm(95)" class="px-2 py-1 rounded-lg bg-[#140f0b] hover:bg-amber-950 border border-stone-800 hover:border-amber-700 text-[11px] text-stone-300 font-mono transition">95 (Pop)</button>
+                            <button onclick="setBpm(120)" class="px-2 py-1 rounded-lg bg-[#140f0b] hover:bg-amber-950 border border-stone-800 hover:border-amber-700 text-[11px] text-stone-300 font-mono transition">120 (Nhanh)</button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Visual Beat Lights, Time Signature & Sound Tone (3 cols) -->
+                    <div class="lg:col-span-3 flex flex-col items-center lg:items-end justify-between gap-3">
+                        <!-- Visual Beat LEDs -->
+                        <div id="metro-drawer-leds" class="flex items-center justify-center gap-2.5 bg-[#120d0a] px-4 py-2.5 rounded-2xl border border-amber-900/40 w-full">
+                        </div>
+
+                        <!-- Time Signature & Sound Selector -->
+                        <div class="flex flex-wrap items-center justify-end gap-2 w-full">
+                            <select id="metro-timesig" onchange="changeTimeSignature(this.value)" class="bg-[#251b14] text-amber-200 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-amber-800/50 focus:outline-none">
+                                <option value="4">Nhịp 4/4 (Phổ biến)</option>
+                                <option value="3">Nhịp 3/4 (Waltz / Ballad)</option>
+                                <option value="2">Nhịp 2/4 (Disco / Fox)</option>
+                                <option value="6">Nhịp 6/8 (Slow Rock)</option>
+                            </select>
+
+                            <select id="metro-sound-type" onchange="changeMetroSound(this.value)" class="bg-[#251b14] text-stone-200 text-xs font-medium px-2.5 py-1.5 rounded-xl border border-amber-800/50 focus:outline-none">
+                                <option value="woodblock">🪵 Mõ gỗ (Woodblock)</option>
+                                <option value="click">⏱️ Cơ bản (Classic Click)</option>
+                                <option value="stick">🥁 Dùi trống (Drumstick)</option>
+                                <option value="beep">🔔 Điện tử (Digital Beep)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </header>
 
@@ -174,7 +309,7 @@
                     <label class="flex items-center gap-2 cursor-pointer select-none bg-[#291e17] px-3 py-2 rounded-xl border border-amber-900/30 hover:border-amber-700/50 transition">
                         <input type="checkbox" id="auto-audio-toggle" checked class="w-4 h-4 accent-amber-500 rounded">
                         <span class="text-xs sm:text-sm text-stone-200 font-medium">
-                            <i class="fa-solid fa-volume-high text-amber-400 mr-1"></i> Tự phát tiếng Guitar
+                            <i class="fa-solid fa-volume-high text-amber-400 mr-1"></i> Tự phát tiếng khi trả lời
                         </span>
                     </label>
                 </div>
@@ -255,10 +390,10 @@
                         </button>
                     </div>
 
-                    <!-- THE QUESTION PROMPT (User's exact requested style: "Câu 1: C là ....") -->
+                    <!-- THE QUESTION PROMPT -->
                     <div class="my-6 sm:my-8 text-center">
                         <p class="text-stone-400 text-xs sm:text-sm uppercase tracking-widest mb-2 font-semibold" id="question-subtitle">
-                             Điền tên hoặc ký hiệu hợp âm tương ứng:
+                             Ký hiệu này là nốt / hợp âm gì?
                         </p>
                         <div class="inline-flex flex-wrap items-baseline justify-center gap-x-3 gap-y-2 text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white bg-[#140f0b]/70 px-6 py-6 rounded-2xl border border-amber-900/30 w-full shadow-inner">
                             <span id="q-prefix" class="text-stone-400 font-mono text-xl sm:text-3xl">Câu 1:</span>
@@ -270,7 +405,6 @@
 
                     <!-- MULTIPLE CHOICE OPTIONS -->
                     <div id="mcq-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-6">
-                        <!-- Dynamically populated buttons -->
                     </div>
 
                     <!-- TYPING INPUT MODE -->
@@ -326,12 +460,12 @@
                         </label>
                     </div>
 
-                    <!-- Hidden state before answering (unless "Always show" is checked) -->
+                    <!-- Hidden state before answering -->
                     <div id="diagram-mystery" class="py-12 px-4 text-center flex flex-col items-center justify-center w-full">
                         <div class="w-16 h-16 rounded-2xl bg-amber-950/50 border border-amber-800/40 flex items-center justify-center text-amber-500/60 text-2xl mb-3">
                             <i class="fa-solid fa-guitar"></i>
                         </div>
-                        <p class="text-stone-300 font-semibold text-sm">Trả lời câu hỏi để mở khóa thế bấm!</p>
+                        <p class="text-stone-300 font-semibold text-sm">Trả lời câu hỏi để mở khóa thế bấm & âm thanh!</p>
                         <p class="text-stone-500 text-xs mt-1 max-w-xs">Hoặc tích vào ô "Luôn hiện" ở góc trên nếu bạn muốn vừa nhìn thế bấm vừa đoán hợp âm.</p>
                     </div>
 
@@ -360,7 +494,7 @@
                 </div>
             </div>
 
-            <!-- Question History Log (Shows the continuous stream: Câu 1, Câu 2, Câu 3...) -->
+            <!-- Question History Log -->
             <div class="bg-[#1e1611] border border-amber-900/40 rounded-2xl p-4 sm:p-5">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-stone-400 flex items-center gap-2">
@@ -443,63 +577,103 @@
                             <i class="fa-solid fa-hand-pointer text-amber-400 mr-1"></i> Bấm để Bật / Tắt hợp âm trong danh sách hiển thị:
                         </span>
                         <div class="flex items-center gap-3">
-                            <label class="flex items-center gap-1.5 text-xs text-stone-300 cursor-pointer select-none">
-                                <input type="checkbox" id="prog-allow-duplicates" class="accent-amber-500 rounded">
-                                <span>Cho phép thêm trùng hợp âm (Nối đuôi)</span>
-                            </label>
                             <button onclick="clearProgression()" class="text-xs text-red-400 hover:text-red-300 font-semibold transition">
-                                <i class="fa-solid fa-trash-can mr-1"></i> Xóa hết
+                                <i class="fa-solid fa-trash-can mr-1"></i> Xóa hết danh sách
                             </button>
                         </div>
                     </div>
-
                     <div id="prog-chord-picker" class="flex flex-wrap gap-2">
-                        <!-- Populated by JS -->
                     </div>
                 </div>
             </div>
 
-            <!-- Playback & Practice Action Bar -->
-            <div class="bg-gradient-to-r from-[#251b14] via-[#1e1611] to-[#251b14] border border-amber-800/50 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-xl">
-                <!-- Current Sequence Summary Pill -->
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xs font-bold text-stone-400 uppercase">Chuỗi đang hiện (<span id="prog-count">4</span>):</span>
-                    <div id="prog-summary-pills" class="flex flex-wrap items-center gap-1.5">
-                        <!-- Breadcrumb pills C -> G -> Am -> F -->
+            <!-- DEDICATED METRONOME & RHYTHM SYNC BAR FOR CHORD PROGRESSION -->
+            <div class="bg-gradient-to-r from-[#251b14] via-[#1e1611] to-[#251b14] border border-amber-700/50 rounded-3xl p-5 shadow-2xl space-y-4">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-stone-800/90 pb-4">
+                    
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-lg">
+                                <i class="fa-solid fa-stopwatch"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm sm:text-base font-extrabold text-amber-200 flex items-center gap-2">
+                                    Máy Đếm Nhịp & Tập Chuyển Hợp Âm (Metronome)
+                                </h3>
+                                <p class="text-xs text-stone-400">Giữ nhịp chuẩn khi chuyển tay qua lại giữa chuỗi hợp âm đã chọn</p>
+                            </div>
+                        </div>
+
+                        <div id="prog-metro-leds" class="flex items-center gap-2 bg-[#120d0a] px-3.5 py-2 rounded-2xl border border-amber-900/50">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <div class="flex items-center gap-1.5 bg-[#140f0b] px-3 py-1.5 rounded-xl border border-amber-900/40">
+                            <button onclick="adjustBpm(-5)" class="w-6 h-6 rounded bg-stone-800 hover:bg-amber-600 hover:text-slate-950 text-stone-300 font-mono text-xs font-bold transition">-</button>
+                            <div class="px-2 text-center">
+                                <span id="prog-bpm-readout" class="text-lg font-extrabold font-mono text-amber-400">80</span>
+                                <span class="text-[10px] font-bold text-stone-400 uppercase block -mt-1">BPM</span>
+                            </div>
+                            <button onclick="adjustBpm(5)" class="w-6 h-6 rounded bg-stone-800 hover:bg-amber-600 hover:text-slate-950 text-stone-300 font-mono text-xs font-bold transition">+</button>
+                        </div>
+
+                        <button onclick="handleTapTempo()" class="px-3 py-2 rounded-xl bg-[#271d15] hover:bg-amber-900/60 active:scale-95 border border-amber-700/40 text-amber-200 text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-hand-pointer text-amber-400"></i>
+                            <span>Chạm Dò Nhịp</span>
+                        </button>
+
+                        <button onclick="toggleMetronomeDrawer()" class="px-3 py-2 rounded-xl bg-stone-800/80 hover:bg-stone-700 text-stone-200 text-xs font-semibold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-sliders text-amber-400"></i>
+                            <span>Cài đặt nhịp chi tiết</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Player Controls & Send to Quiz -->
-                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-end">
-                    <!-- Tempo / Interval Speed -->
-                    <div class="flex items-center gap-2 bg-[#140f0b] px-3 py-1.5 rounded-xl border border-stone-800">
-                        <i class="fa-solid fa-gauge-high text-amber-400 text-xs"></i>
-                        <span class="text-xs text-stone-300">Tốc độ chuyển:</span>
-                        <select id="prog-speed" onchange="restartLoopIfPlaying()" class="bg-transparent text-amber-300 font-bold text-xs focus:outline-none cursor-pointer">
-                            <option value="2800" class="bg-[#1e1611]">Chậm (2.8 giây/hợp âm)</option>
-                            <option value="2000" selected class="bg-[#1e1611]">Vừa (2.0 giây/hợp âm)</option>
-                            <option value="1400" class="bg-[#1e1611]">Nhanh (1.4 giây/hợp âm)</option>
-                            <option value="1000" class="bg-[#1e1611]">Siêu tốc (1.0 giây/hợp âm)</option>
-                        </select>
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-xs font-bold text-stone-400 uppercase">Chuỗi đang hiện (<span id="prog-count">4</span>):</span>
+                        <div id="prog-summary-pills" class="flex flex-wrap items-center gap-1.5">
+                        </div>
                     </div>
 
-                    <!-- Play / Loop Progression Button -->
-                    <button onclick="togglePlayProgression()" id="prog-play-btn" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm transition flex items-center gap-2 shadow-lg">
-                        <i class="fa-solid fa-play"></i>
-                        <span>Phát Cả Vòng (Loop)</span>
-                    </button>
+                    <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end">
+                        <div class="flex items-center gap-1.5 bg-[#140f0b] px-3 py-2 rounded-xl border border-stone-800">
+                            <i class="fa-solid fa-arrows-rotate text-amber-400 text-xs"></i>
+                            <span class="text-xs text-stone-300">Chuyển hợp âm mỗi:</span>
+                            <select id="prog-beats-per-chord" class="bg-transparent text-amber-300 font-bold text-xs focus:outline-none cursor-pointer">
+                                <option value="4" selected class="bg-[#1e1611]">4 phách (1 ô nhịp 4/4)</option>
+                                <option value="2" class="bg-[#1e1611]">2 phách (Chuyển nhanh)</option>
+                                <option value="3" class="bg-[#1e1611]">3 phách (Nhịp 3/4)</option>
+                                <option value="8" class="bg-[#1e1611]">8 phách (2 ô nhịp - Tập chậm)</option>
+                                <option value="1" class="bg-[#1e1611]">1 phách / hợp âm</option>
+                            </select>
+                        </div>
 
-                    <!-- Practice this sequence in Quiz -->
-                    <button onclick="practiceProgressionInQuiz()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition flex items-center gap-2 shadow-lg">
-                        <i class="fa-solid fa-bolt"></i>
-                        <span>Hỏi Đáp Riêng Chuỗi Này</span>
-                    </button>
+                        <div class="flex items-center gap-1.5 bg-[#140f0b] px-3 py-2 rounded-xl border border-stone-800">
+                            <i class="fa-solid fa-volume-high text-amber-400 text-xs"></i>
+                            <select id="prog-audio-mix" class="bg-transparent text-stone-200 font-semibold text-xs focus:outline-none cursor-pointer">
+                                <option value="both" selected class="bg-[#1e1611]">Tiếng Nhịp + Rải Đàn (Phách 1)</option>
+                                <option value="metro_only" class="bg-[#1e1611]">Chỉ Tiếng Đếm Nhịp (Tự đàn)</option>
+                                <option value="guitar_only" class="bg-[#1e1611]">Chỉ Tiếng Rải Hợp Âm</option>
+                            </select>
+                        </div>
+
+                        <button onclick="togglePlayProgression()" id="prog-play-btn" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm transition flex items-center gap-2 shadow-lg">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Bắt Đầu Đếm Nhịp & Chạy Vòng</span>
+                        </button>
+
+                        <button onclick="practiceProgressionInQuiz()" class="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-lg">
+                            <i class="fa-solid fa-bolt"></i>
+                            <span>Hỏi Đáp Chuỗi Này</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Multi-Chord Visual Cards Grid -->
             <div id="prog-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                <!-- Populated dynamically with selected chords -->
             </div>
         </section>
 
@@ -624,7 +798,6 @@
 
             <!-- Dictionary Cards Grid -->
             <div id="dictionary-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                <!-- Populated by JS -->
             </div>
         </section>
 
@@ -637,13 +810,6 @@
 
     <!-- ==================== APPLICATION LOGIC ==================== -->
     <script>
-        /**
-         * COMPREHENSIVE VIETNAMESE GUITAR CHORD DATABASE
-         * frets: [String 6 (Low E), String 5 (A), String 4 (D), String 3 (G), String 2 (B), String 1 (High E)]
-         * -1 = Muted (X), 0 = Open (O), 1..4 = Fret number
-         * fingers: [String 6..1] 0 = none, 1 = Index, 2 = Middle, 3 = Ring, 4 = Pinky
-         * midi: MIDI note numbers for accurate Web Audio API guitar synthesis
-         */
         const CHORD_DATABASE = [
             // --- GROUP 1: 7 NỐT NHẠC GỐC & HỢP ÂM TRƯỞNG TƯƠNG ỨNG (C, D, E, F, G, A, B) ---
             {
@@ -747,7 +913,7 @@
                 midi: [47, 54, 59, 63, 66]
             },
 
-            // --- GROUP 2: HỢP ÂM THỨ & TRƯỞNG ĐỆM HÁT CƠ BẢN (Am, Dm, Em, Bm, Fm, Gm) ---
+            // --- GROUP 2: HỢP ÂM THỨ & TRƯỞNG ĐỆM HÁT CƠ BẢN ---
             {
                 id: 'am_chord',
                 symbol: 'Am',
@@ -881,7 +1047,7 @@
                 midi: [49, 56, 61, 64, 68]
             },
 
-            // --- GROUP 3: HỢP ÂM 7 & HỢP ÂM MÀU THÔNG DỤNG (G7, E7, A7, D7, B7, Cmaj7, Fmaj7, Am7, Dm7, Em7, Cadd9) ---
+            // --- GROUP 3: HỢP ÂM 7 & HỢP ÂM MÀU THÔNG DỤNG ---
             {
                 id: 'c7_chord',
                 symbol: 'C7',
@@ -1055,128 +1221,83 @@
         // --- APPLICATION STATE ---
         let activeCategories = new Set(['notes', 'basic']);
         let currentTab = 'quiz';
-        let customQuizChordIds = null; // When set, quiz only asks chords from the user's selected progression
-
-        // Multi-Chord Progression Builder State (Default: C - G - Am - F)
-        let selectedProgression = ['c_note', 'g_note', 'am_chord', 'f_note'];
-        let progPlayInterval = null;
-        let progActivePlayIndex = -1;
-
-        // Spaced repetition weights (higher = ask more often)
-        let chordWeights = {};
-        CHORD_DATABASE.forEach(c => chordWeights[c.id] = 10);
+        let customQuizChordIds = null;
 
         // Quiz State
-        let questionCounter = 1;
-        let currentQuestion = null; // { chord, askType: 'sym2name'|'name2sym', promptTarget, correctAnswer, options }
-        let isAnswered = false;
-        let lastChordId = null;
-        let stats = { total: 0, correct: 0, streak: 0 };
-        let historyLog = [];
-
-        // Timer State
-        let timerSeconds = 0;
+        let currentQuestion = null;
+        let questionCounter = 0;
+        let quizStats = { total: 0, correct: 0, streak: 0 };
+        let quizHistory = [];
         let timerInterval = null;
-        let timeRemaining = 0;
+        let timeLeftMs = 0;
 
         // Flashcard State
         let flashcardDeck = [];
         let fcIndex = 0;
-        let isCardFlipped = false;
+        let fcFlipped = false;
 
-        // Web Audio Context
+        // Multi-Chord Progression Builder State
+        let selectedProgression = ['c_note', 'g_note', 'am_chord', 'f_note'];
+        let progActivePlayIndex = -1;
+
+        // Metronome & Tempo Engine State
+        let metroState = {
+            isPlaying: false,
+            bpm: 80,
+            beatsPerBar: 4,
+            soundType: 'woodblock',
+            currentBeat: 0,
+            chordBeatCounter: 0,
+            syncProgression: false,
+            timerId: null,
+            tapTimes: []
+        };
+
+        // Spaced repetition weights
+        let chordWeights = {};
+        CHORD_DATABASE.forEach(c => chordWeights[c.id] = 10);
+
+        // --- WEB AUDIO API SYNTHESIZER ---
         let audioCtx = null;
-
-        // --- WEB AUDIO API GUITAR SYNTHESIZER ---
         function initAudio() {
             if (!audioCtx) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
         }
 
-        function midiToFreq(midi) {
-            return 440 * Math.pow(2, (midi - 69) / 12);
-        }
-
-        function playGuitarNote(freq, startTime, duration = 2.0) {
-            if (!audioCtx) return;
-
-            // Create warm acoustic guitar pluck using triangle + sawtooth + lowpass filter envelope
-            const osc1 = audioCtx.createOscillator();
-            const osc2 = audioCtx.createOscillator();
-            const filter = audioCtx.createBiquadFilter();
-            const gainNode = audioCtx.createGain();
-
-            osc1.type = 'triangle';
-            osc2.type = 'sawtooth';
-
-            osc1.frequency.setValueAtTime(freq, startTime);
-            osc2.frequency.setValueAtTime(freq, startTime);
-            // Slight detune for chorus warmth
-            osc2.detune.setValueAtTime(4, startTime);
-
-            // Acoustic body filter envelope
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(freq * 6, startTime);
-            filter.frequency.exponentialRampToValueAtTime(freq * 1.5, startTime + 0.35);
-
-            // Pluck amplitude envelope
-            gainNode.gain.setValueAtTime(0.001, startTime);
-            gainNode.gain.linearRampToValueAtTime(0.22, startTime + 0.015);
-            gainNode.gain.exponentialRampToValueAtTime(0.06, startTime + 0.25);
-            gainNode.gain.exponentialRampToValueAtTime(0.0008, startTime + duration);
-
-            osc1.connect(filter);
-            osc2.connect(filter);
-            filter.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-
-            osc1.start(startTime);
-            osc2.start(startTime);
-            osc1.stop(startTime + duration);
-            osc2.stop(startTime + duration);
-        }
-
         function strumChord(chordObj) {
-            if (!chordObj || !chordObj.midi) return;
             initAudio();
             const now = audioCtx.currentTime;
-            const strumDelay = 0.045; // 45ms between each string pluck
-            chordObj.midi.forEach((midiNote, idx) => {
-                const freq = midiToFreq(midiNote);
-                playGuitarNote(freq, now + idx * strumDelay, 2.2);
+            const midiNotes = chordObj.midi || [48, 52, 55, 60, 64];
+
+            midiNotes.forEach((midi, idx) => {
+                const freq = 440 * Math.pow(2, (midi - 69) / 12);
+                const delay = idx * 0.035;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + delay);
+
+                gain.gain.setValueAtTime(0.001, now + delay);
+                gain.gain.linearRampToValueAtTime(0.35, now + delay + 0.015);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 1.4);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now + delay);
+                osc.stop(now + delay + 1.5);
             });
         }
 
-        function playFeedbackSound(isCorrect) {
-            initAudio();
-            const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            if (isCorrect) {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, now); // D5
-                osc.frequency.setValueAtTime(880, now + 0.08); // A5
-                gain.gain.setValueAtTime(0.12, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-                osc.start(now);
-                osc.stop(now + 0.25);
-            } else {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(190, now);
-                osc.frequency.linearRampToValueAtTime(140, now + 0.25);
-                gain.gain.setValueAtTime(0.12, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            }
+        function strumChordById(chordId) {
+            const chord = CHORD_DATABASE.find(c => c.id === chordId);
+            if (chord) strumChord(chord);
         }
 
         function strumCurrentChord() {
@@ -1185,303 +1306,900 @@
             }
         }
 
-        // --- SVG GUITAR FRETBOARD GENERATOR ---
-        function generateChordSVG(chord, width = 200, height = 235) {
-            const padLeft = 36;
-            const padRight = 24;
-            const padTop = 38;
-            const padBottom = 26;
+        // --- WEB AUDIO API METRONOME SOUND SYNTHESIZER ---
+        function playMetronomeClickSound(isAccent = false) {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const type = metroState.soundType;
 
-            const gridW = width - padLeft - padRight;
-            const gridH = height - padTop - padBottom;
-            const numStrings = 6;
-            const numFrets = 5;
-            const stringSpacing = gridW / (numStrings - 1);
-            const fretSpacing = gridH / numFrets;
+            if (type === 'woodblock') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                const baseFreq = isAccent ? 1050 : 760;
+                osc.frequency.setValueAtTime(baseFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.65, now + 0.055);
 
-            // Determine base fret (default 1)
-            const activeFrets = chord.frets.filter(f => f > 0);
-            const maxFret = activeFrets.length ? Math.max(...activeFrets) : 1;
-            const minFret = activeFrets.length ? Math.min(...activeFrets) : 1;
-            const baseFret = maxFret > 5 ? minFret : 1;
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(isAccent ? 0.55 : 0.35, now + 0.004);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
 
-            let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" class="rounded-2xl bg-[#16100c] border border-amber-900/50">`;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.07);
+            } else if (type === 'stick') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(isAccent ? 1650 : 1200, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.03);
 
-            // Fretboard wood background
-            svg += `<rect x="${padLeft}" y="${padTop}" width="${gridW}" height="${gridH}" fill="#261a12" rx="2"/>`;
+                gain.gain.setValueAtTime(isAccent ? 0.4 : 0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
 
-            // Top Nut (thick ivory bar if baseFret === 1)
-            if (baseFret === 1) {
-                svg += `<rect x="${padLeft - 2}" y="${padTop - 5}" width="${gridW + 4}" height="6" fill="#f5e6d3" rx="2"/>`;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.04);
+            } else if (type === 'beep') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(isAccent ? 1760 : 880, now);
+
+                gain.gain.setValueAtTime(isAccent ? 0.35 : 0.22, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.075);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.08);
             } else {
-                svg += `<text x="${padLeft - 14}" y="${padTop + fretSpacing * 0.65}" fill="#f59e0b" font-size="12" font-weight="bold" text-anchor="middle">${baseFret}fr</text>`;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(isAccent ? 1300 : 900, now);
+                osc.frequency.exponentialRampToValueAtTime(180, now + 0.025);
+
+                gain.gain.setValueAtTime(isAccent ? 0.45 : 0.28, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.035);
+            }
+        }
+
+        // --- METRONOME CONTROLLER LOGIC ---
+        function getTempoMarking(bpm) {
+            if (bpm < 60) return 'Largo (Rất chậm - Tập đặt ngón)';
+            if (bpm < 76) return 'Adagio (Chậm rãi - Ballad)';
+            if (bpm < 108) return 'Andante (Vừa phải - Nhạc trẻ)';
+            if (bpm < 120) return 'Moderato (Hơi nhanh)';
+            if (bpm < 156) return 'Allegro (Nhanh & Sôi động)';
+            return 'Presto (Siêu tốc)';
+        }
+
+        function toggleMetronomeDrawer() {
+            const drawer = document.getElementById('metronome-drawer');
+            if (drawer) {
+                drawer.classList.toggle('hidden');
+            }
+        }
+
+        function setBpm(newBpm) {
+            const clamped = Math.max(40, Math.min(220, parseInt(newBpm, 10) || 80));
+            metroState.bpm = clamped;
+
+            const bpmDisplay = document.getElementById('metro-bpm-display');
+            if (bpmDisplay) bpmDisplay.textContent = clamped;
+            const bpmSlider = document.getElementById('metro-bpm-slider');
+            if (bpmSlider) bpmSlider.value = clamped;
+            const headerBpm = document.getElementById('header-metro-bpm');
+            if (headerBpm) headerBpm.textContent = `${clamped} BPM`;
+            const tempoLabel = document.getElementById('metro-tempo-label');
+            if (tempoLabel) tempoLabel.textContent = getTempoMarking(clamped);
+
+            const progReadout = document.getElementById('prog-bpm-readout');
+            if (progReadout) progReadout.textContent = clamped;
+
+            if (metroState.isPlaying) {
+                restartMetronomeTimer();
+            }
+        }
+
+        function adjustBpm(delta) {
+            setBpm(metroState.bpm + delta);
+        }
+
+        function changeTimeSignature(beatsVal) {
+            metroState.beatsPerBar = parseInt(beatsVal, 10) || 4;
+            metroState.currentBeat = 0;
+            renderMetronomeLEDs();
+            if (metroState.isPlaying) {
+                restartMetronomeTimer();
+            }
+        }
+
+        function changeMetroSound(soundVal) {
+            metroState.soundType = soundVal;
+            playMetronomeClickSound(true);
+        }
+
+        function handleTapTempo() {
+            const now = performance.now();
+            if (metroState.tapTimes.length > 0 && now - metroState.tapTimes[metroState.tapTimes.length - 1] > 2500) {
+                metroState.tapTimes = [];
+            }
+            metroState.tapTimes.push(now);
+            if (metroState.tapTimes.length > 5) {
+                metroState.tapTimes.shift();
             }
 
-            // Fret wires (horizontal lines)
-            for (let f = 0; f <= numFrets; f++) {
-                const y = padTop + f * fretSpacing;
-                svg += `<line x1="${padLeft}" y1="${y}" x2="${padLeft + gridW}" y2="${y}" stroke="#786252" stroke-width="1.5"/>`;
-            }
+            playMetronomeClickSound(false);
 
-            // Fretboard inlay dots (Fret 3 and Fret 5)
-            [3, 5].forEach(fNum => {
-                const relFret = fNum - baseFret + 1;
-                if (relFret >= 1 && relFret <= numFrets) {
-                    const cy = padTop + (relFret - 0.5) * fretSpacing;
-                    const cx = padLeft + gridW / 2;
-                    svg += `<circle cx="${cx}" cy="${cy}" r="4" fill="#443327"/>`;
+            if (metroState.tapTimes.length >= 2) {
+                let sumIntervals = 0;
+                for (let i = 1; i < metroState.tapTimes.length; i++) {
+                    sumIntervals += (metroState.tapTimes[i] - metroState.tapTimes[i - 1]);
                 }
-            });
+                const avgMs = sumIntervals / (metroState.tapTimes.length - 1);
+                const calculatedBpm = Math.round(60000 / avgMs);
+                setBpm(calculatedBpm);
+            }
+        }
 
-            // 6 Guitar Strings (vertical lines, thicker on bass strings)
+        function renderMetronomeLEDs() {
+            const totalBeats = metroState.beatsPerBar;
+            const activeBeat = metroState.isPlaying ? metroState.currentBeat : 0;
+
+            const buildHTML = (compact = false) => {
+                let html = '';
+                for (let b = 1; b <= totalBeats; b++) {
+                    const isCurrent = (b === activeBeat);
+                    const isAccent = (b === 1);
+                    let circleClass = '';
+                    if (isCurrent) {
+                        circleClass = isAccent
+                            ? 'bg-amber-400 text-slate-950 border-amber-200 beat-active-accent font-extrabold'
+                            : 'bg-emerald-400 text-slate-950 border-emerald-200 beat-active-normal font-extrabold';
+                    } else {
+                        circleClass = 'bg-[#1e1611] text-stone-500 border-stone-800 font-semibold';
+                    }
+                    const sizeClass = compact ? 'w-7 h-7 text-xs' : 'w-8 h-8 text-xs sm:text-sm';
+                    html += `
+                        <div class="${sizeClass} rounded-xl border flex items-center justify-center font-mono transition-all ${circleClass}">
+                            ${b}
+                        </div>
+                    `;
+                }
+                return html;
+            };
+
+            const drawerLeds = document.getElementById('metro-drawer-leds');
+            if (drawerLeds) drawerLeds.innerHTML = buildHTML(false);
+
+            const progLeds = document.getElementById('prog-metro-leds');
+            if (progLeds) progLeds.innerHTML = buildHTML(true);
+        }
+
+        function toggleMetronome() {
+            if (metroState.isPlaying) {
+                stopAllMetronomeAndProgression();
+            } else {
+                startMetronomeEngine(false);
+            }
+        }
+
+        function startMetronomeEngine(syncWithChords = false) {
+            if (metroState.timerId) clearInterval(metroState.timerId);
+            metroState.isPlaying = true;
+            metroState.syncProgression = syncWithChords;
+            metroState.currentBeat = 0;
+            metroState.chordBeatCounter = 0;
+
+            if (syncWithChords && selectedProgression.length > 0) {
+                progActivePlayIndex = 0;
+            }
+
+            updateMetronomeButtonsUI();
+            executeMetronomeTick();
+
+            const intervalMs = 60000 / metroState.bpm;
+            metroState.timerId = setInterval(executeMetronomeTick, intervalMs);
+        }
+
+        function restartMetronomeTimer() {
+            if (!metroState.isPlaying) return;
+            if (metroState.timerId) clearInterval(metroState.timerId);
+            const intervalMs = 60000 / metroState.bpm;
+            metroState.timerId = setInterval(executeMetronomeTick, intervalMs);
+        }
+
+        function executeMetronomeTick() {
+            metroState.currentBeat = (metroState.currentBeat % metroState.beatsPerBar) + 1;
+            const isBeatOne = (metroState.currentBeat === 1);
+
+            const headerDot = document.getElementById('header-metro-dot');
+            if (headerDot) {
+                headerDot.className = isBeatOne
+                    ? 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400'
+                    : 'w-2.5 h-2.5 rounded-full bg-emerald-400';
+            }
+
+            if (metroState.syncProgression && selectedProgression.length > 0) {
+                const beatsPerChord = parseInt(document.getElementById('prog-beats-per-chord')?.value || '4', 10);
+                const audioMix = document.getElementById('prog-audio-mix')?.value || 'both';
+
+                if (metroState.chordBeatCounter >= beatsPerChord) {
+                    metroState.chordBeatCounter = 0;
+                    progActivePlayIndex = (progActivePlayIndex + 1) % selectedProgression.length;
+                }
+                metroState.chordBeatCounter++;
+
+                if (audioMix !== 'guitar_only') {
+                    playMetronomeClickSound(metroState.chordBeatCounter === 1 || isBeatOne);
+                }
+
+                if (metroState.chordBeatCounter === 1 && audioMix !== 'metro_only') {
+                    const currentId = selectedProgression[progActivePlayIndex];
+                    const chordObj = CHORD_DATABASE.find(c => c.id === currentId);
+                    if (chordObj) strumChord(chordObj);
+                }
+
+                renderProgressionSummaryPills();
+                renderProgressionCardsGrid();
+            } else {
+                playMetronomeClickSound(isBeatOne);
+            }
+
+            renderMetronomeLEDs();
+        }
+
+        function stopAllMetronomeAndProgression() {
+            if (metroState.timerId) {
+                clearInterval(metroState.timerId);
+                metroState.timerId = null;
+            }
+            metroState.isPlaying = false;
+            metroState.syncProgression = false;
+            metroState.currentBeat = 0;
+            metroState.chordBeatCounter = 0;
+            progActivePlayIndex = -1;
+
+            updateMetronomeButtonsUI();
+            renderMetronomeLEDs();
+
+            if (currentTab === 'progression') {
+                renderProgressionSummaryPills();
+                renderProgressionCardsGrid();
+            }
+        }
+
+        function updateMetronomeButtonsUI() {
+            const mainBtn = document.getElementById('metro-main-play-btn');
+            const headerDot = document.getElementById('header-metro-dot');
+            const progBtn = document.getElementById('prog-play-btn');
+
+            if (metroState.isPlaying) {
+                if (mainBtn) {
+                    mainBtn.className = 'w-14 h-14 rounded-2xl bg-red-600 hover:bg-red-500 text-white flex items-center justify-center text-xl font-extrabold shadow-lg transition shrink-0 strumming';
+                    mainBtn.innerHTML = `<i class="fa-solid fa-stop"></i>`;
+                }
+            } else {
+                if (mainBtn) {
+                    mainBtn.className = 'w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 flex items-center justify-center text-xl font-extrabold shadow-lg shadow-amber-500/20 transition shrink-0';
+                    mainBtn.innerHTML = `<i class="fa-solid fa-play ml-0.5"></i>`;
+                }
+                if (headerDot) {
+                    headerDot.className = 'w-2 h-2 rounded-full bg-stone-600';
+                }
+            }
+
+            if (progBtn) {
+                if (metroState.isPlaying && metroState.syncProgression) {
+                    progBtn.className = 'px-4 py-2.5 rounded-xl bg-red-500 hover:bg-red-400 text-white font-extrabold text-xs sm:text-sm transition flex items-center gap-2 shadow-lg strumming';
+                    progBtn.innerHTML = `<i class="fa-solid fa-stop"></i> <span>Dừng Đếm Nhịp & Vòng</span>`;
+                } else {
+                    progBtn.className = 'px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm transition flex items-center gap-2 shadow-lg';
+                    progBtn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Bắt Đầu Đếm Nhịp & Chạy Vòng</span>`;
+                }
+            }
+        }
+
+        // --- SVG GUITAR FRETBOARD GENERATOR ---
+        function generateChordSVG(chord, width = 210, height = 240) {
+            const frets = chord.frets;
+            const fingers = chord.fingers || [0,0,0,0,0,0];
+            const barre = chord.barre;
+
+            const startX = 40;
+            const startY = 45;
+            const stringGap = 24;
+            const fretGap = 36;
+            const numFrets = 5;
+            const numStrings = 6;
+
+            let svg = `<svg viewBox="0 0 ${width} ${height}" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">`;
+
+            const minFret = Math.min(...frets.filter(f => f > 0));
+            const startFretNum = (minFret > 3) ? minFret : 1;
+
+            if (startFretNum === 1) {
+                svg += `<rect x="${startX}" y="${startY}" width="${5 * stringGap}" height="6" fill="#f59e0b" rx="2"/>`;
+            } else {
+                svg += `<text x="${startX - 12}" y="${startY + fretGap/2 + 5}" fill="#f59e0b" font-size="12" font-family="monospace" font-weight="bold">${startFretNum}fr</text>`;
+                svg += `<line x1="${startX}" y1="${startY}" x2="${startX + 5 * stringGap}" y2="${startY}" stroke="#78716c" stroke-width="2"/>`;
+            }
+
+            for (let f = 0; f <= numFrets; f++) {
+                const y = startY + f * fretGap;
+                svg += `<line x1="${startX}" y1="${y}" x2="${startX + (numStrings - 1) * stringGap}" y2="${y}" stroke="#78716c" stroke-width="${f === 0 && startFretNum > 1 ? 2 : 1.5}"/>`;
+            }
+
             const stringNames = ['E', 'A', 'D', 'G', 'B', 'e'];
             for (let s = 0; s < numStrings; s++) {
-                const x = padLeft + s * stringSpacing;
-                const strokeW = 2.4 - s * 0.25;
-                svg += `<line x1="${x}" y1="${padTop}" x2="${x}" y2="${padTop + gridH}" stroke="#d6c5b3" stroke-width="${strokeW}" stroke-opacity="0.85"/>`;
-                // String name at bottom
-                svg += `<text x="${x}" y="${height - 7}" fill="#a89888" font-size="10" font-family="monospace" text-anchor="middle">${stringNames[s]}</text>`;
+                const x = startX + s * stringGap;
+                const strokeW = 1 + (5 - s) * 0.25;
+                svg += `<line x1="${x}" y1="${startY}" x2="${x}" y2="${startY + numFrets * fretGap}" stroke="#d6d3d1" stroke-width="${strokeW}"/>`;
+                svg += `<text x="${x}" y="${startY + numFrets * fretGap + 18}" fill="#a8a29e" font-size="10" font-family="sans-serif" font-weight="bold" text-anchor="middle">${stringNames[s]}</text>`;
             }
 
-            // Barre chord bar if present
-            if (chord.barre) {
-                const relFret = chord.barre.fret - baseFret + 1;
-                const startStrIdx = 6 - chord.barre.fromString;
-                const endStrIdx = 6 - chord.barre.toString;
-                const x1 = padLeft + Math.min(startStrIdx, endStrIdx) * stringSpacing;
-                const x2 = padLeft + Math.max(startStrIdx, endStrIdx) * stringSpacing;
-                const cy = padTop + (relFret - 0.5) * fretSpacing;
-                svg += `<rect x="${x1 - 8}" y="${cy - 8}" width="${x2 - x1 + 16}" height="16" rx="8" fill="#f59e0b" fill-opacity="0.85"/>`;
-            }
-
-            // Finger positions & Open/Muted indicators
-            for (let s = 0; s < numStrings; s++) {
-                const fret = chord.frets[s];
-                const finger = chord.fingers ? chord.fingers[s] : 0;
-                const x = padLeft + s * stringSpacing;
-
-                if (fret === -1) {
-                    // Muted string 'X'
-                    svg += `<text x="${x}" y="${padTop - 12}" fill="#ef4444" font-size="13" font-weight="bold" text-anchor="middle">✕</text>`;
-                } else if (fret === 0) {
-                    // Open string 'O'
-                    svg += `<circle cx="${x}" cy="${padTop - 16}" r="5.5" fill="none" stroke="#34d399" stroke-width="2"/>`;
-                } else {
-                    // Fretted note circle
-                    const relFret = fret - baseFret + 1;
-                    const cy = padTop + (relFret - 0.5) * fretSpacing;
-                    svg += `<circle cx="${x}" cy="${cy}" r="10.5" fill="#f59e0b" stroke="#18120e" stroke-width="1.5"/>`;
-                    if (finger > 0) {
-                        svg += `<text x="${x}" y="${cy + 4}" fill="#0f172a" font-size="11" font-weight="800" text-anchor="middle">${finger}</text>`;
-                    }
+            if (barre) {
+                const bFret = barre.fret - startFretNum + 1;
+                if (bFret >= 1 && bFret <= numFrets) {
+                    const bx1 = startX + (6 - barre.fromString) * stringGap;
+                    const bx2 = startX + (6 - barre.toString) * stringGap;
+                    const by = startY + (bFret - 1) * fretGap + fretGap / 2;
+                    svg += `<rect x="${bx1 - 8}" y="${by - 8}" width="${bx2 - bx1 + 16}" height="16" rx="8" fill="#f59e0b" opacity="0.85"/>`;
                 }
             }
+
+            frets.forEach((fret, idx) => {
+                const x = startX + idx * stringGap;
+
+                if (fret === -1) {
+                    svg += `<text x="${x}" y="${startY - 8}" fill="#ef4444" font-size="13" font-family="sans-serif" font-weight="bold" text-anchor="middle">✕</text>`;
+                } else if (fret === 0) {
+                    svg += `<circle cx="${x}" cy="${startY - 10}" r="4.5" fill="none" stroke="#10b981" stroke-width="2"/>`;
+                } else {
+                    const relativeFret = fret - startFretNum + 1;
+                    if (relativeFret >= 1 && relativeFret <= numFrets) {
+                        const y = startY + (relativeFret - 1) * fretGap + fretGap / 2;
+                        const fingerNum = fingers[idx];
+
+                        svg += `<circle cx="${x}" cy="${y}" r="9.5" fill="#f59e0b" stroke="#fffbeb" stroke-width="1.5"/>`;
+                        if (fingerNum > 0) {
+                            svg += `<text x="${x}" y="${y + 4}" fill="#18120e" font-size="10" font-family="sans-serif" font-weight="bold" text-anchor="middle">${fingerNum}</text>`;
+                        }
+                    }
+                }
+            });
 
             svg += `</svg>`;
             return svg;
-        }
-
-        // --- FILTER & CATEGORY MANAGEMENT ---
-        function getActiveChords() {
-            if (customQuizChordIds && customQuizChordIds.length > 0) {
-                const customPool = CHORD_DATABASE.filter(c => customQuizChordIds.includes(c.id));
-                if (customPool.length > 0) return customPool;
-            }
-            return CHORD_DATABASE.filter(c => activeCategories.has(c.category));
-        }
-
-        function toggleCategory(catKey) {
-            customQuizChordIds = null;
-            document.getElementById('custom-quiz-banner').classList.add('hidden');
-            if (activeCategories.has(catKey)) {
-                // Prevent unselecting all categories
-                if (activeCategories.size <= 1) return;
-                activeCategories.delete(catKey);
-            } else {
-                activeCategories.add(catKey);
-            }
-            updateCategoryChipsUI();
-            if (currentTab === 'quiz') {
-                resetAndNextQuestion();
-            } else if (currentTab === 'flashcard') {
-                initFlashcards();
-            }
-        }
-
-        function exitCustomQuizPool() {
-            customQuizChordIds = null;
-            document.getElementById('custom-quiz-banner').classList.add('hidden');
-            resetAndNextQuestion();
-        }
-
-        function updateCategoryChipsUI() {
-            const cats = ['notes', 'basic', 'seventh'];
-            cats.forEach(c => {
-                const btn = document.getElementById(`cat-${c}`);
-                const icon = btn.querySelector('i');
-                if (activeCategories.has(c)) {
-                    btn.className = 'cat-chip px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border transition-all flex items-center gap-1.5 bg-amber-500/20 border-amber-500 text-amber-200';
-                    icon.className = 'fa-solid fa-check text-amber-400';
-                } else {
-                    btn.className = 'cat-chip px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border transition-all flex items-center gap-1.5 bg-stone-800/60 border-stone-700 text-stone-400';
-                    icon.className = 'fa-solid fa-plus text-stone-500';
-                }
-            });
         }
 
         // --- TAB NAVIGATION ---
         function switchTab(tabName) {
             currentTab = tabName;
             stopTimer();
-            stopProgressionPlayback();
+            if (metroState.syncProgression) {
+                stopAllMetronomeAndProgression();
+            }
 
             ['quiz', 'progression', 'flashcard', 'dictionary'].forEach(t => {
                 const view = document.getElementById(`view-${t}`);
                 const btn = document.getElementById(`tab-${t}`);
-                if (t === tabName) {
-                    view.classList.remove('hidden');
-                    btn.className = 'tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 bg-amber-600 text-white shadow';
-                } else {
-                    view.classList.add('hidden');
-                    btn.className = 'tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-stone-300 hover:text-white';
+                if (view) {
+                    view.classList.toggle('hidden', t !== tabName);
+                }
+                if (btn) {
+                    if (t === tabName) {
+                        btn.className = 'tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 bg-amber-600 text-white shadow';
+                    } else {
+                        btn.className = 'tab-btn px-3 sm:px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-stone-300 hover:text-white';
+                    }
                 }
             });
 
-            // Hide category filter on full dictionary or progression view
             const filterBar = document.getElementById('filter-bar');
-            if (tabName === 'dictionary') {
-                filterBar.classList.add('hidden');
-                renderDictionary();
+            if (filterBar) {
+                filterBar.classList.toggle('hidden', tabName === 'progression' || tabName === 'dictionary');
+            }
+
+            if (tabName === 'quiz') {
+                if (!currentQuestion) nextQuestion();
             } else if (tabName === 'progression') {
-                filterBar.classList.add('hidden');
-                renderProgressionView();
-            } else {
-                filterBar.classList.remove('hidden');
-                if (tabName === 'flashcard') initFlashcards();
-                if (tabName === 'quiz' && !currentQuestion) nextQuestion();
+                renderProgressionChordPicker();
+                renderProgressionSummaryPills();
+                renderProgressionCardsGrid();
+            } else if (tabName === 'flashcard') {
+                buildFlashcardDeck();
+                renderFlashcard();
+            } else if (tabName === 'dictionary') {
+                renderDictionary();
             }
         }
 
-        // --- MULTI-CHORD PROGRESSION BUILDER FUNCTIONS ---
-        function renderProgressionView() {
-            renderProgressionPicker();
-            renderProgressionSummaryPills();
-            renderProgressionCardsGrid();
+        // --- CATEGORY & POOL FILTERING ---
+        function getActiveChordPool() {
+            if (customQuizChordIds && customQuizChordIds.length > 0) {
+                const pool = CHORD_DATABASE.filter(c => customQuizChordIds.includes(c.id));
+                if (pool.length > 0) return pool;
+            }
+            const pool = CHORD_DATABASE.filter(c => activeCategories.has(c.category));
+            return pool.length > 0 ? pool : CHORD_DATABASE;
         }
 
-        function renderProgressionPicker() {
-            const picker = document.getElementById('prog-chord-picker');
-            if (!picker) return;
+        function toggleCategory(cat) {
+            if (customQuizChordIds) {
+                customQuizChordIds = null;
+                document.getElementById('custom-quiz-banner')?.classList.add('hidden');
+            }
 
-            picker.innerHTML = CHORD_DATABASE.map(chord => {
-                const countInProg = selectedProgression.filter(id => id === chord.id).length;
+            if (activeCategories.has(cat)) {
+                if (activeCategories.size > 1) {
+                    activeCategories.delete(cat);
+                }
+            } else {
+                activeCategories.add(cat);
+            }
+
+            updateCategoryChipsUI();
+            if (currentTab === 'quiz') {
+                resetAndNextQuestion();
+            } else if (currentTab === 'flashcard') {
+                buildFlashcardDeck();
+                renderFlashcard();
+            }
+        }
+
+        function updateCategoryChipsUI() {
+            const labels = {
+                notes: '7 Gốc Nhạc Cơ Bản (C, D, E...)',
+                basic: 'Trưởng & Thứ Cơ Bản (Am, Dm, Em...)',
+                seventh: 'Hợp Âm 7 & Màu (G7, Cmaj7, Cadd9...)'
+            };
+
+            ['notes', 'basic', 'seventh'].forEach(cat => {
+                const btn = document.getElementById(`cat-${cat}`);
+                if (!btn) return;
+                const isActive = activeCategories.has(cat);
+                if (isActive) {
+                    btn.className = 'cat-chip px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border transition-all flex items-center gap-1.5 bg-amber-500/20 border-amber-500 text-amber-200';
+                    btn.innerHTML = `<i class="fa-solid fa-check text-amber-400"></i> ${labels[cat]}`;
+                } else {
+                    btn.className = 'cat-chip px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium border transition-all flex items-center gap-1.5 bg-stone-800/60 border-stone-700 text-stone-400';
+                    btn.innerHTML = `<i class="fa-solid fa-plus text-stone-500"></i> ${labels[cat]}`;
+                }
+            });
+        }
+
+        function exitCustomQuizPool() {
+            customQuizChordIds = null;
+            document.getElementById('custom-quiz-banner')?.classList.add('hidden');
+            resetAndNextQuestion();
+        }
+
+        // --- QUIZ / REFLEX LOGIC ---
+        function pickWeightedRandomChord(pool) {
+            let totalWeight = 0;
+            pool.forEach(c => {
+                totalWeight += (chordWeights[c.id] || 10);
+            });
+            let rand = Math.random() * totalWeight;
+            for (const c of pool) {
+                rand -= (chordWeights[c.id] || 10);
+                if (rand <= 0) return c;
+            }
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function resetAndNextQuestion() {
+            nextQuestion();
+        }
+
+        function changeInputMode() {
+            const mode = document.getElementById('quiz-input-mode').value;
+            document.getElementById('mcq-container').classList.toggle('hidden', mode !== 'mcq');
+            document.getElementById('typing-container').classList.toggle('hidden', mode !== 'typing');
+            if (mode === 'typing') {
+                setTimeout(() => document.getElementById('typing-input')?.focus(), 50);
+            }
+        }
+
+        function updateTimerSetting() {
+            nextQuestion();
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function startTimerIfEnabled() {
+            stopTimer();
+            const sec = parseInt(document.getElementById('quiz-timer-setting')?.value || '0', 10);
+            const barContainer = document.getElementById('timer-bar-container');
+            const bar = document.getElementById('timer-bar');
+
+            if (!sec || sec <= 0) {
+                if (barContainer) barContainer.classList.add('hidden');
+                return;
+            }
+
+            if (barContainer) barContainer.classList.remove('hidden');
+            const totalMs = sec * 1000;
+            timeLeftMs = totalMs;
+            if (bar) bar.style.width = '100%';
+
+            timerInterval = setInterval(() => {
+                timeLeftMs -= 100;
+                const pct = Math.max(0, (timeLeftMs / totalMs) * 100);
+                if (bar) bar.style.width = `${pct}%`;
+
+                if (timeLeftMs <= 0) {
+                    stopTimer();
+                    handleAnswerSubmission(null, true);
+                }
+            }, 100);
+        }
+
+        function nextQuestion() {
+            stopTimer();
+            const pool = getActiveChordPool();
+            const chord = pickWeightedRandomChord(pool);
+            questionCounter++;
+
+            const dirSetting = document.getElementById('quiz-direction')?.value || 'mixed';
+            let askDirection = dirSetting;
+            if (dirSetting === 'mixed') {
+                askDirection = Math.random() < 0.5 ? 'sym2name' : 'name2sym';
+            }
+
+            const promptText = askDirection === 'sym2name' ? chord.symbol : chord.shortName;
+            const correctAnswer = askDirection === 'sym2name' ? chord.shortName : chord.symbol;
+
+            // Build 4 Multiple Choice Options
+            const distractors = CHORD_DATABASE
+                .filter(c => c.id !== chord.id)
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 3)
+                .map(c => askDirection === 'sym2name' ? c.shortName : c.symbol);
+
+            const options = [correctAnswer, ...distractors].sort(() => Math.random() - 0.5);
+
+            currentQuestion = {
+                number: questionCounter,
+                chord,
+                direction: askDirection,
+                promptText,
+                correctAnswer,
+                options,
+                answered: false
+            };
+
+            // Update Question UI
+            document.getElementById('question-number-badge').textContent = `Câu ${questionCounter}`;
+            document.getElementById('question-category-badge').textContent = chord.categoryLabel;
+            document.getElementById('q-prefix').textContent = `Câu ${questionCounter}:`;
+            document.getElementById('q-target').textContent = promptText;
+            const blankEl = document.getElementById('q-blank');
+            blankEl.textContent = '....';
+            blankEl.className = 'px-4 py-1 rounded-xl bg-amber-950/60 border-2 border-dashed border-amber-500/50 text-amber-200 min-w-[120px] inline-block text-center';
+
+            // Repeat badge if weight is high
+            const repeatBadge = document.getElementById('repeat-badge');
+            if (repeatBadge) {
+                repeatBadge.classList.toggle('hidden', (chordWeights[chord.id] || 10) <= 12);
+            }
+
+            // Render MCQ buttons
+            const mcqContainer = document.getElementById('mcq-container');
+            mcqContainer.innerHTML = options.map((opt, idx) => `
+                <button onclick="selectMcqOption(${idx})" id="mcq-opt-${idx}" class="mcq-btn group p-4 rounded-2xl bg-[#16100c] hover:bg-amber-950/60 border-2 border-amber-900/40 hover:border-amber-500/70 transition-all flex items-center justify-between text-left">
+                    <span class="text-lg sm:text-xl font-extrabold text-stone-100 group-hover:text-amber-300">${opt}</span>
+                    <span class="w-7 h-7 rounded-lg bg-stone-800/80 text-stone-400 font-mono text-xs font-bold flex items-center justify-center">${idx + 1}</span>
+                </button>
+            `).join('');
+
+            // Reset Typing Input
+            const typingInput = document.getElementById('typing-input');
+            if (typingInput) {
+                typingInput.value = '';
+                typingInput.disabled = false;
+                if (document.getElementById('quiz-input-mode').value === 'typing') {
+                    setTimeout(() => typingInput.focus(), 30);
+                }
+            }
+
+            // Hide Feedback Panel
+            document.getElementById('feedback-panel').classList.add('hidden');
+
+            // Update Fretboard Diagram Panel (Keep hidden until answered unless "Always show" is checked)
+            populateDiagramPanel(chord);
+            updateDiagramVisibility();
+
+            startTimerIfEnabled();
+        }
+
+        function populateDiagramPanel(chord) {
+            document.getElementById('diag-symbol').textContent = chord.symbol;
+            document.getElementById('diag-name').textContent = chord.name;
+            document.getElementById('diag-formula').textContent = `Nốt cấu tạo: ${chord.notes}`;
+            document.getElementById('quiz-svg-holder').innerHTML = generateChordSVG(chord, 210, 240);
+            document.getElementById('diag-fingers').innerHTML = `
+                <div class="font-bold text-amber-400 mb-1"><i class="fa-solid fa-hand-point-up mr-1"></i> Hướng dẫn đặt ngón tay:</div>
+                <p class="leading-relaxed">${chord.guide}</p>
+            `;
+        }
+
+        function updateDiagramVisibility() {
+            const alwaysShow = document.getElementById('always-show-diagram')?.checked;
+            const isAnswered = currentQuestion && currentQuestion.answered;
+            const showNow = alwaysShow || isAnswered;
+
+            document.getElementById('diagram-mystery').classList.toggle('hidden', showNow);
+            document.getElementById('diagram-content').classList.toggle('hidden', !showNow);
+        }
+
+        function selectMcqOption(idx) {
+            if (!currentQuestion || currentQuestion.answered) return;
+            const chosen = currentQuestion.options[idx];
+            handleAnswerSubmission(chosen, false, idx);
+        }
+
+        function normalizeVnString(str) {
+            return (str || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        }
+
+        function handleTypingSubmit(e) {
+            e.preventDefault();
+            if (!currentQuestion || currentQuestion.answered) {
+                nextQuestion();
+                return;
+            }
+            const inputEl = document.getElementById('typing-input');
+            const userVal = inputEl.value;
+            if (!userVal.trim()) return;
+            handleAnswerSubmission(userVal, false);
+        }
+
+        function handleAnswerSubmission(userAnswer, isTimeout = false, selectedIdx = -1) {
+            if (!currentQuestion || currentQuestion.answered) return;
+            stopTimer();
+            currentQuestion.answered = true;
+
+            const chord = currentQuestion.chord;
+            let isCorrect = false;
+
+            if (!isTimeout && userAnswer !== null) {
+                const normUser = normalizeVnString(userAnswer);
+                const normCorrect = normalizeVnString(currentQuestion.correctAnswer);
+                if (normUser === normCorrect || chord.acceptedAnswers.includes(normUser)) {
+                    isCorrect = true;
+                }
+            }
+
+            // Update Stats & Spaced Repetition Weights
+            quizStats.total++;
+            if (isCorrect) {
+                quizStats.correct++;
+                quizStats.streak++;
+                chordWeights[chord.id] = Math.max(4, (chordWeights[chord.id] || 10) - 2);
+            } else {
+                quizStats.streak = 0;
+                chordWeights[chord.id] = Math.min(40, (chordWeights[chord.id] || 10) + 12);
+            }
+
+            updateQuizStatsUI();
+
+            // Fill in the blank in question prompt
+            const blankEl = document.getElementById('q-blank');
+            blankEl.textContent = currentQuestion.correctAnswer;
+            blankEl.className = isCorrect
+                ? 'px-4 py-1 rounded-xl bg-emerald-950/80 border-2 border-emerald-400 text-emerald-300 min-w-[120px] inline-block text-center'
+                : 'px-4 py-1 rounded-xl bg-red-950/80 border-2 border-red-400 text-amber-300 min-w-[120px] inline-block text-center';
+
+            // Highlight MCQ buttons
+            currentQuestion.options.forEach((opt, i) => {
+                const btn = document.getElementById(`mcq-opt-${i}`);
+                if (!btn) return;
+                if (opt === currentQuestion.correctAnswer) {
+                    btn.className = 'mcq-btn p-4 rounded-2xl bg-emerald-950/70 border-2 border-emerald-400 flex items-center justify-between text-left';
+                } else if (i === selectedIdx && !isCorrect) {
+                    btn.className = 'mcq-btn p-4 rounded-2xl bg-red-950/70 border-2 border-red-500 flex items-center justify-between text-left opacity-80';
+                } else {
+                    btn.className = 'mcq-btn p-4 rounded-2xl bg-[#16100c] border-2 border-stone-800 flex items-center justify-between text-left opacity-45';
+                }
+            });
+
+            // Show Feedback Banner
+            const fbPanel = document.getElementById('feedback-panel');
+            const fbIcon = document.getElementById('feedback-icon');
+            const fbTitle = document.getElementById('feedback-title');
+            const fbDetail = document.getElementById('feedback-detail');
+
+            fbPanel.classList.remove('hidden');
+            if (isCorrect) {
+                fbPanel.className = 'mt-6 p-4 rounded-2xl border bg-emerald-950/40 border-emerald-500/50 flex flex-col sm:flex-row items-center justify-between gap-4';
+                fbIcon.className = 'w-10 h-10 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-lg shrink-0';
+                fbIcon.innerHTML = `<i class="fa-solid fa-check"></i>`;
+                fbTitle.className = 'font-bold text-base text-emerald-300';
+                fbTitle.textContent = 'Chính xác tuyệt vời!';
+                fbDetail.textContent = `${chord.symbol} là ${chord.name} (${chord.notes})`;
+            } else {
+                fbPanel.className = 'mt-6 p-4 rounded-2xl border bg-red-950/40 border-red-500/50 flex flex-col sm:flex-row items-center justify-between gap-4';
+                fbIcon.className = 'w-10 h-10 rounded-full bg-red-500 text-white flex items-center justify-center text-lg shrink-0';
+                fbIcon.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+                fbTitle.className = 'font-bold text-base text-red-300';
+                fbTitle.textContent = isTimeout ? 'Hết giờ! Hệ thống sẽ lặp lại câu này' : 'Chưa đúng! Hãy ghi nhớ đáp án dưới đây';
+                fbDetail.textContent = `Đáp án: ${chord.symbol} là ${chord.name}`;
+            }
+
+            // Mở khóa sơ đồ thế bấm bên phải
+            updateDiagramVisibility();
+
+            // TỰ PHÁT TIẾNG ĐÀN KHI TRẢ LỜI XONG
+            if (document.getElementById('auto-audio-toggle')?.checked) {
+                strumChord(chord);
+            }
+
+            // Log to History
+            addQuizHistoryItem(currentQuestion.number, chord.symbol, chord.shortName, isCorrect);
+        }
+
+        function updateQuizStatsUI() {
+            document.getElementById('stat-total').textContent = quizStats.total;
+            document.getElementById('stat-streak').textContent = quizStats.streak;
+            const acc = quizStats.total > 0 ? Math.round((quizStats.correct / quizStats.total) * 100) : 100;
+            document.getElementById('stat-accuracy').textContent = `${acc}%`;
+        }
+
+        function addQuizHistoryItem(num, sym, name, isCorrect) {
+            quizHistory.unshift({ num, sym, name, isCorrect });
+            if (quizHistory.length > 20) quizHistory.pop();
+            renderQuizHistory();
+        }
+
+        function renderQuizHistory() {
+            const container = document.getElementById('history-list');
+            if (!container) return;
+            if (quizHistory.length === 0) {
+                container.innerHTML = `<span class="text-xs text-stone-500 italic">Chưa có câu trả lời nào. Hãy bắt đầu câu số 1!</span>`;
+                return;
+            }
+            container.innerHTML = quizHistory.map(item => `
+                <div class="shrink-0 px-3 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 ${
+                    item.isCorrect 
+                        ? 'bg-emerald-950/30 border-emerald-700/40 text-emerald-200' 
+                        : 'bg-red-950/40 border-red-700/50 text-red-200'
+                }">
+                    <span class="font-mono text-[11px] text-stone-400">#${item.num}</span>
+                    <span class="font-bold text-amber-300 font-mono">${item.sym}</span>
+                    <span>=</span>
+                    <span>${item.name}</span>
+                    <i class="fa-solid ${item.isCorrect ? 'fa-circle-check text-emerald-400' : 'fa-circle-xmark text-red-400'} ml-0.5"></i>
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() {
+            quizHistory = [];
+            renderQuizHistory();
+        }
+
+        // --- MULTI-CHORD PROGRESSION BUILDER FUNCTIONS ---
+        function renderProgressionChordPicker() {
+            const container = document.getElementById('prog-chord-picker');
+            if (!container) return;
+
+            container.innerHTML = CHORD_DATABASE.map(c => {
+                const countInProg = selectedProgression.filter(id => id === c.id).length;
                 const isSelected = countInProg > 0;
                 return `
-                    <button onclick="handlePickerChordClick('${chord.id}')" 
-                        class="px-3 py-1.5 rounded-xl font-mono text-xs sm:text-sm font-bold border transition-all flex items-center gap-1.5 ${
-                            isSelected 
-                                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20 scale-[1.02]' 
-                                : 'bg-[#140f0b] text-stone-300 border-stone-800 hover:border-amber-700/60 hover:text-white'
-                        }">
-                        <span>${chord.symbol}</span>
-                        <span class="font-sans font-normal text-[11px] ${isSelected ? 'text-slate-900 font-semibold' : 'text-stone-500'}">(${chord.shortName})</span>
-                        ${countInProg > 1 ? `<span class="px-1.5 py-0.2 rounded-full bg-slate-950 text-amber-400 text-[10px]">x${countInProg}</span>` : ''}
+                    <button onclick="toggleChordInProgression('${c.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                        isSelected
+                            ? 'bg-amber-500 text-slate-950 border-amber-300 shadow-md shadow-amber-500/20'
+                            : 'bg-[#140f0b] text-stone-300 border-stone-800 hover:border-amber-700/60 hover:text-amber-200'
+                    }">
+                        <span class="font-mono text-sm">${c.symbol}</span>
+                        <span class="text-[11px] ${isSelected ? 'text-slate-900 font-semibold' : 'text-stone-400'}">(${c.shortName})</span>
+                        ${countInProg > 1 ? `<span class="px-1.5 py-0.2 rounded-full bg-slate-950 text-amber-300 text-[10px] font-mono">x${countInProg}</span>` : ''}
                     </button>
                 `;
             }).join('');
         }
 
-        function handlePickerChordClick(chordId) {
-            const allowDuplicates = document.getElementById('prog-allow-duplicates').checked;
-            const existingIdx = selectedProgression.indexOf(chordId);
-
-            if (allowDuplicates) {
-                selectedProgression.push(chordId);
-                const chordObj = CHORD_DATABASE.find(c => c.id === chordId);
-                if (chordObj && document.getElementById('auto-audio-toggle').checked) strumChord(chordObj);
+        function toggleChordInProgression(chordId) {
+            const idx = selectedProgression.indexOf(chordId);
+            if (idx !== -1) {
+                selectedProgression.splice(idx, 1);
             } else {
-                // Toggle On / Off behavior
-                if (existingIdx !== -1) {
-                    selectedProgression.splice(existingIdx, 1);
-                } else {
-                    selectedProgression.push(chordId);
-                    const chordObj = CHORD_DATABASE.find(c => c.id === chordId);
-                    if (chordObj && document.getElementById('auto-audio-toggle').checked) strumChord(chordObj);
-                }
+                selectedProgression.push(chordId);
+                strumChordById(chordId);
             }
-            renderProgressionView();
+            renderProgressionChordPicker();
+            renderProgressionSummaryPills();
+            renderProgressionCardsGrid();
         }
 
-        function applyPreset(symbolArray) {
-            stopProgressionPlayback();
+        function applyPreset(symbolList) {
+            stopAllMetronomeAndProgression();
             const newIds = [];
-            symbolArray.forEach(sym => {
+            symbolList.forEach(sym => {
                 const found = CHORD_DATABASE.find(c => c.symbol.toLowerCase() === sym.toLowerCase());
                 if (found) newIds.push(found.id);
             });
             if (newIds.length > 0) {
                 selectedProgression = newIds;
-                document.getElementById('prog-text-input').value = symbolArray.join(' - ');
-                renderProgressionView();
-                // Strum first chord of preset
-                const firstChord = CHORD_DATABASE.find(c => c.id === newIds[0]);
-                if (firstChord && document.getElementById('auto-audio-toggle').checked) {
-                    strumChord(firstChord);
-                }
+                renderProgressionChordPicker();
+                renderProgressionSummaryPills();
+                renderProgressionCardsGrid();
             }
         }
 
         function handleQuickProgressionInput(e) {
             e.preventDefault();
-            const raw = document.getElementById('prog-text-input').value.trim();
+            const input = document.getElementById('prog-text-input');
+            const raw = (input?.value || '').trim();
             if (!raw) return;
 
-            // Split by spaces, hyphens, commas, or arrows
-            const tokens = raw.split(/[\s,\-➔>]+/).filter(Boolean);
+            const tokens = raw.split(/[\s,\->|]+/).filter(Boolean);
             const matchedIds = [];
 
             tokens.forEach(tok => {
-                const normTok = tok.toLowerCase();
-                const found = CHORD_DATABASE.find(c => 
-                    c.symbol.toLowerCase() === normTok || 
-                    c.shortName.toLowerCase() === normTok
+                const clean = tok.toLowerCase();
+                const found = CHORD_DATABASE.find(
+                    c => c.symbol.toLowerCase() === clean || c.acceptedAnswers.includes(clean)
                 );
                 if (found) matchedIds.push(found.id);
             });
 
             if (matchedIds.length > 0) {
-                stopProgressionPlayback();
                 selectedProgression = matchedIds;
-                renderProgressionView();
+                renderProgressionChordPicker();
+                renderProgressionSummaryPills();
+                renderProgressionCardsGrid();
             }
         }
 
-        function removeChordAtIndex(idx) {
-            stopProgressionPlayback();
-            selectedProgression.splice(idx, 1);
-            renderProgressionView();
-        }
-
-        function moveChordInProgression(idx, direction) {
-            const targetIdx = idx + direction;
-            if (targetIdx < 0 || targetIdx >= selectedProgression.length) return;
-            const temp = selectedProgression[idx];
-            selectedProgression[idx] = selectedProgression[targetIdx];
-            selectedProgression[targetIdx] = temp;
-            renderProgressionView();
-        }
-
         function clearProgression() {
-            stopProgressionPlayback();
+            stopAllMetronomeAndProgression();
             selectedProgression = [];
-            document.getElementById('prog-text-input').value = '';
-            renderProgressionView();
+            renderProgressionChordPicker();
+            renderProgressionSummaryPills();
+            renderProgressionCardsGrid();
+        }
+
+        function moveChordInProgression(index, direction) {
+            const target = index + direction;
+            if (target < 0 || target >= selectedProgression.length) return;
+            const temp = selectedProgression[index];
+            selectedProgression[index] = selectedProgression[target];
+            selectedProgression[target] = temp;
+            renderProgressionSummaryPills();
+            renderProgressionCardsGrid();
+        }
+
+        function removeChordAtIndex(index) {
+            selectedProgression.splice(index, 1);
+            renderProgressionChordPicker();
+            renderProgressionSummaryPills();
+            renderProgressionCardsGrid();
         }
 
         function renderProgressionSummaryPills() {
             const countEl = document.getElementById('prog-count');
+            if (countEl) countEl.textContent = selectedProgression.length;
+
             const container = document.getElementById('prog-summary-pills');
-            countEl.textContent = selectedProgression.length;
+            if (!container) return;
 
             if (selectedProgression.length === 0) {
                 container.innerHTML = `<span class="text-xs text-stone-500 italic">Chưa chọn hợp âm nào</span>`;
@@ -1494,13 +2212,13 @@
                 const isActive = idx === progActivePlayIndex;
                 return `
                     <div class="flex items-center gap-1.5">
-                        <button onclick="strumChordById('${c.id}')" class="px-2.5 py-1 rounded-lg font-mono text-xs font-bold transition ${
-                            isActive 
-                                ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-300 scale-110' 
-                                : 'bg-amber-950/70 text-amber-300 border border-amber-700/40 hover:bg-amber-800/50'
+                        <span onclick="strumChordById('${c.id}')" class="cursor-pointer px-2.5 py-1 rounded-lg font-mono text-xs font-bold transition ${
+                            isActive
+                                ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-200 scale-105'
+                                : 'bg-[#140f0b] text-amber-300 border border-amber-800/50 hover:border-amber-500'
                         }">
-                            ${c.symbol} <span class="font-sans font-normal text-[10px] opacity-80">(${c.shortName})</span>
-                        </button>
+                            ${c.symbol} <span class="font-sans font-normal opacity-80">(${c.shortName})</span>
+                        </span>
                         ${idx < selectedProgression.length - 1 ? `<i class="fa-solid fa-arrow-right text-[10px] text-stone-600"></i>` : ''}
                     </div>
                 `;
@@ -1509,16 +2227,14 @@
 
         function renderProgressionCardsGrid() {
             const grid = document.getElementById('prog-cards-grid');
+            if (!grid) return;
+
             if (selectedProgression.length === 0) {
                 grid.innerHTML = `
-                    <div class="col-span-full bg-[#1e1611] border border-dashed border-amber-900/50 rounded-3xl p-12 text-center">
-                        <div class="w-16 h-16 rounded-2xl bg-amber-950/60 border border-amber-800/40 flex items-center justify-center text-amber-400 text-2xl mx-auto mb-3">
-                            <i class="fa-solid fa-hand-pointer"></i>
-                        </div>
-                        <h3 class="text-base font-bold text-white">Hãy bấm chọn các hợp âm ở bảng phía trên!</h3>
-                        <p class="text-xs text-stone-400 mt-1 max-w-md mx-auto">
-                            Ví dụ: Bấm vào <b>C</b>, <b>G</b>, <b>Am</b>, <b>F</b> hoặc chọn các nút "Vòng Hợp Âm Kinh Điển" để hiện đồng thời tất cả sơ đồ thế bấm và tên hợp âm.
-                        </p>
+                    <div class="col-span-full bg-[#1e1611] border border-dashed border-amber-800/50 rounded-3xl p-10 text-center">
+                        <i class="fa-solid fa-guitar text-4xl text-amber-500/40 mb-3"></i>
+                        <p class="text-stone-300 font-bold">Chưa có hợp âm nào trong chuỗi hiển thị</p>
+                        <p class="text-xs text-stone-500 mt-1">Hãy bấm vào các nút hợp âm phía trên hoặc chọn 1 vòng hợp âm mẫu để xem thế bấm.</p>
                     </div>
                 `;
                 return;
@@ -1528,20 +2244,27 @@
                 const c = CHORD_DATABASE.find(item => item.id === id);
                 if (!c) return '';
                 const isPlayingNow = idx === progActivePlayIndex;
+                const beatsPerChord = parseInt(document.getElementById('prog-beats-per-chord')?.value || '4', 10);
 
                 return `
-                    <div id="prog-card-${idx}" class="relative rounded-3xl p-5 flex flex-col items-center justify-between transition-all duration-300 ${
+                    <div id="prog-card-${idx}" class="relative rounded-3xl p-5 flex flex-col items-center justify-between transition-all duration-200 ${
                         isPlayingNow 
                             ? 'bg-gradient-to-b from-amber-950/90 to-[#1e1611] border-2 border-amber-400 shadow-2xl shadow-amber-500/20 scale-[1.02]' 
                             : 'bg-[#1e1611] border border-amber-900/40 hover:border-amber-700/60 shadow-xl'
                     }">
-                        <!-- Step Number & Card Controls -->
                         <div class="w-full flex items-center justify-between border-b border-stone-800/80 pb-2.5 mb-3">
-                            <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
-                                isPlayingNow ? 'bg-amber-400 text-slate-950' : 'bg-stone-800 text-amber-400'
-                            }">
-                                #${idx + 1}
-                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
+                                    isPlayingNow ? 'bg-amber-400 text-slate-950' : 'bg-stone-800 text-amber-400'
+                                }">
+                                    #${idx + 1}
+                                </span>
+                                ${isPlayingNow && metroState.isPlaying ? `
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 font-mono text-[11px] font-bold">
+                                        Phách ${metroState.chordBeatCounter}/${beatsPerChord}
+                                    </span>
+                                ` : ''}
+                            </div>
 
                             <div class="flex items-center gap-1">
                                 <button onclick="moveChordInProgression(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Sang trái" class="w-7 h-7 rounded-lg bg-stone-900 hover:bg-stone-800 disabled:opacity-30 text-stone-300 text-xs flex items-center justify-center transition">
@@ -1556,19 +2279,16 @@
                             </div>
                         </div>
 
-                        <!-- Chord Symbol & Vietnamese Name -->
                         <div class="text-center mb-2">
                             <div class="text-4xl font-extrabold text-amber-400 font-mono tracking-tight">${c.symbol}</div>
                             <div class="text-base font-bold text-white mt-0.5">${c.name}</div>
                             <div class="text-[11px] text-amber-300/80 font-mono mt-0.5">${c.notes}</div>
                         </div>
 
-                        <!-- 6-String Fretboard SVG -->
                         <div onclick="strumChordById('${c.id}')" class="cursor-pointer my-1" title="Bấm để nghe tiếng rải hợp âm ${c.symbol}">
                             ${generateChordSVG(c, 195, 225)}
                         </div>
 
-                        <!-- Finger Guide & Strum Button -->
                         <div class="w-full mt-3 space-y-2.5">
                             <div class="bg-[#140f0b] p-2.5 rounded-xl border border-stone-800 text-[11px] text-stone-300 leading-relaxed text-center">
                                 ${c.guide}
@@ -1583,8 +2303,8 @@
         }
 
         function togglePlayProgression() {
-            if (progPlayInterval) {
-                stopProgressionPlayback();
+            if (metroState.isPlaying && metroState.syncProgression) {
+                stopAllMetronomeAndProgression();
             } else {
                 startProgressionPlayback();
             }
@@ -1592,479 +2312,37 @@
 
         function startProgressionPlayback() {
             if (selectedProgression.length === 0) return;
-            const speedMs = parseInt(document.getElementById('prog-speed').value, 10) || 2000;
-            const btn = document.getElementById('prog-play-btn');
-            btn.className = 'px-4 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-white font-extrabold text-xs sm:text-sm transition flex items-center gap-2 shadow-lg strumming';
-            btn.innerHTML = `<i class="fa-solid fa-stop"></i> <span>Dừng Phát</span>`;
-
-            progActivePlayIndex = 0;
-            triggerProgressionStep();
-
-            progPlayInterval = setInterval(() => {
-                progActivePlayIndex = (progActivePlayIndex + 1) % selectedProgression.length;
-                triggerProgressionStep();
-            }, speedMs);
-        }
-
-        function triggerProgressionStep() {
-            renderProgressionSummaryPills();
-            renderProgressionCardsGrid();
-            const currentId = selectedProgression[progActivePlayIndex];
-            const chordObj = CHORD_DATABASE.find(c => c.id === currentId);
-            if (chordObj) strumChord(chordObj);
+            startMetronomeEngine(true);
         }
 
         function stopProgressionPlayback() {
-            if (progPlayInterval) {
-                clearInterval(progPlayInterval);
-                progPlayInterval = null;
-            }
-            progActivePlayIndex = -1;
-            const btn = document.getElementById('prog-play-btn');
-            if (btn) {
-                btn.className = 'px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm transition flex items-center gap-2 shadow-lg';
-                btn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Phát Cả Vòng (Loop)</span>`;
-            }
-            if (currentTab === 'progression') {
-                renderProgressionSummaryPills();
-                renderProgressionCardsGrid();
-            }
-        }
-
-        function restartLoopIfPlaying() {
-            if (progPlayInterval) {
-                stopProgressionPlayback();
-                startProgressionPlayback();
+            if (metroState.syncProgression) {
+                stopAllMetronomeAndProgression();
             }
         }
 
         function practiceProgressionInQuiz() {
             if (selectedProgression.length === 0) return;
-            // Deduplicate chord IDs for the quiz pool
             customQuizChordIds = [...new Set(selectedProgression)];
-            document.getElementById('custom-quiz-banner').classList.remove('hidden');
+            document.getElementById('custom-quiz-banner')?.classList.remove('hidden');
             switchTab('quiz');
-            resetAndNextQuestion();
-        }
-
-        // --- CORE QUIZ & SPACED REPETITION ENGINE ---
-        function pickWeightedRandomChord(pool) {
-            // Avoid repeating the exact same chord twice in a row if pool > 1
-            const candidates = pool.length > 1 ? pool.filter(c => c.id !== lastChordId) : pool;
-            let totalWeight = 0;
-            candidates.forEach(c => {
-                totalWeight += (chordWeights[c.id] || 10);
-            });
-
-            let rand = Math.random() * totalWeight;
-            for (const c of candidates) {
-                const w = chordWeights[c.id] || 10;
-                if (rand < w) return c;
-                rand -= w;
-            }
-            return candidates[0];
-        }
-
-        function getDisplayPromptForChord(chord, askType) {
-            if (askType === 'sym2name') {
-                // Example: "Câu 1: C là ...."
-                return {
-                    target: chord.symbol,
-                    correctDisplay: chord.category === 'notes' ? `${chord.shortName} (${chord.name})` : chord.name,
-                    optionLabelFn: (c) => c.category === 'notes' ? `${c.shortName} (Hợp âm ${c.shortName} trưởng)` : c.name
-                };
-            } else {
-                // Example: "Câu 3: La là ...." or "Câu 4: Rê thứ là ...."
-                const vnPrompt = chord.category === 'notes' ? chord.shortName : chord.name;
-                return {
-                    target: vnPrompt,
-                    correctDisplay: chord.symbol,
-                    optionLabelFn: (c) => c.symbol
-                };
-            }
-        }
-
-        function resetAndNextQuestion() {
             nextQuestion();
         }
 
-        function nextQuestion() {
-            stopTimer();
-            isAnswered = false;
-
-            const pool = getActiveChords();
-            const chosenChord = pickWeightedRandomChord(pool);
-            lastChordId = chosenChord.id;
-
-            // Determine question direction
-            const dirSetting = document.getElementById('quiz-direction').value;
-            let askType = dirSetting;
-            if (dirSetting === 'mixed') {
-                askType = Math.random() < 0.55 ? 'sym2name' : 'name2sym';
-            }
-
-            const promptData = getDisplayPromptForChord(chosenChord, askType);
-
-            // Generate 3 distractors from the same or full database
-            const distractorPool = pool.length >= 4 ? pool : CHORD_DATABASE;
-            const otherChords = distractorPool.filter(c => c.id !== chosenChord.id);
-            const shuffledOthers = otherChords.sort(() => Math.random() - 0.5).slice(0, 3);
-
-            const optionChords = [chosenChord, ...shuffledOthers].sort(() => Math.random() - 0.5);
-            const options = optionChords.map(c => ({
-                chordId: c.id,
-                label: promptData.optionLabelFn(c),
-                isCorrect: c.id === chosenChord.id
-            }));
-
-            currentQuestion = {
-                number: questionCounter,
-                chord: chosenChord,
-                askType,
-                targetText: promptData.target,
-                correctDisplay: promptData.correctDisplay,
-                options
-            };
-
-            renderQuizQuestion();
-            startTimerIfEnabled();
-        }
-
-        function renderQuizQuestion() {
-            const q = currentQuestion;
-            document.getElementById('question-number-badge').textContent = `Câu ${q.number}`;
-            document.getElementById('question-category-badge').textContent = q.chord.categoryLabel;
-
-            // Show badge if this chord has elevated weight due to past error
-            const repBadge = document.getElementById('repeat-badge');
-            if ((chordWeights[q.chord.id] || 10) > 15) {
-                repBadge.classList.remove('hidden');
-            } else {
-                repBadge.classList.add('hidden');
-            }
-
-            // Render prompt: "Câu 1: C là ...."
-            document.getElementById('q-prefix').textContent = `Câu ${q.number}:`;
-            document.getElementById('q-target').textContent = q.targetText;
-            const qBlank = document.getElementById('q-blank');
-            qBlank.textContent = '....';
-            qBlank.className = 'px-4 py-1 rounded-xl bg-amber-950/60 border-2 border-dashed border-amber-500/50 text-amber-200 min-w-[120px] inline-block text-center';
-
-            // Subtitle instruction
-            const subtitle = document.getElementById('question-subtitle');
-            if (q.askType === 'sym2name') {
-                subtitle.textContent = 'Ký hiệu này là nốt / hợp âm gì?';
-            } else {
-                subtitle.textContent = 'Tên gọi này có ký hiệu hợp âm là gì?';
-            }
-
-            // Render Multiple Choice Buttons
-            const mcqContainer = document.getElementById('mcq-container');
-            mcqContainer.innerHTML = '';
-            q.options.forEach((opt, idx) => {
-                const btn = document.createElement('button');
-                btn.id = `mcq-opt-${idx}`;
-                btn.onclick = () => submitMCQAnswer(idx);
-                btn.className = 'mcq-btn group relative w-full p-4 rounded-2xl bg-[#16100c] hover:bg-[#2c2017] border-2 border-amber-900/50 hover:border-amber-500/80 text-left transition-all flex items-center justify-between shadow-md';
-                btn.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <span class="w-8 h-8 rounded-lg bg-amber-950/80 border border-amber-700/50 text-amber-400 font-mono font-bold text-sm flex items-center justify-center group-hover:bg-amber-500 group-hover:text-slate-950 transition">
-                            ${idx + 1}
-                        </span>
-                        <span class="font-bold text-base sm:text-lg text-stone-100 group-hover:text-white">${opt.label}</span>
-                    </div>
-                    <i class="fa-solid fa-circle-chevron-right text-stone-600 group-hover:text-amber-400 transition"></i>
-                `;
-                mcqContainer.appendChild(btn);
-            });
-
-            // Reset Typing Input
-            const typingInput = document.getElementById('typing-input');
-            typingInput.value = '';
-            typingInput.disabled = false;
-            if (document.getElementById('quiz-input-mode').value === 'typing') {
-                setTimeout(() => typingInput.focus(), 50);
-            }
-
-            // Hide feedback banner
-            document.getElementById('feedback-panel').classList.add('hidden');
-
-            // Update Fretboard Panel
-            populateDiagramPanel(q.chord);
-            updateDiagramVisibility();
-        }
-
-        function changeInputMode() {
-            const mode = document.getElementById('quiz-input-mode').value;
-            const mcqBox = document.getElementById('mcq-container');
-            const typingBox = document.getElementById('typing-container');
-            if (mode === 'mcq') {
-                mcqBox.classList.remove('hidden');
-                typingBox.classList.add('hidden');
-            } else {
-                mcqBox.classList.add('hidden');
-                typingBox.classList.remove('hidden');
-                document.getElementById('typing-input').focus();
-            }
-        }
-
-        // Normalize Vietnamese text for forgiving typing comparison
-        function normalizeVi(str) {
-            return str
-                .trim()
-                .toLowerCase()
-                .replace(/\s+/g, ' ');
-        }
-
-        function removeVietnameseTones(str) {
-            return str
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .replace(/đ/g, 'd')
-                .replace(/Đ/g, 'D');
-        }
-
-        function handleTypingSubmit(e) {
-            e.preventDefault();
-            if (isAnswered) {
-                nextQuestion();
-                return;
-            }
-            const rawVal = document.getElementById('typing-input').value;
-            if (!rawVal.trim()) return;
-
-            const userNorm = normalizeVi(rawVal);
-            const userNoTone = removeVietnameseTones(userNorm);
-
-            const q = currentQuestion;
-            let isCorrect = false;
-
-            if (q.askType === 'sym2name') {
-                // Check against accepted Vietnamese names
-                isCorrect = q.chord.acceptedAnswers.some(ans => {
-                    const ansNorm = normalizeVi(ans);
-                    return ansNorm === userNorm || removeVietnameseTones(ansNorm) === userNoTone;
-                });
-            } else {
-                // Check against chord symbol (case-insensitive)
-                isCorrect = userNorm === q.chord.symbol.toLowerCase();
-            }
-
-            processAnswerResult(isCorrect, rawVal.trim());
-        }
-
-        function submitMCQAnswer(optionIndex) {
-            if (isAnswered) return;
-            const chosenOpt = currentQuestion.options[optionIndex];
-            if (!chosenOpt) return;
-
-            // Highlight buttons
-            currentQuestion.options.forEach((opt, idx) => {
-                const btn = document.getElementById(`mcq-opt-${idx}`);
-                btn.disabled = true;
-                if (opt.isCorrect) {
-                    btn.className = 'w-full p-4 rounded-2xl bg-emerald-950/80 border-2 border-emerald-500 text-left flex items-center justify-between shadow-lg';
-                } else if (idx === optionIndex && !opt.isCorrect) {
-                    btn.className = 'w-full p-4 rounded-2xl bg-red-950/80 border-2 border-red-500 text-left flex items-center justify-between opacity-90';
-                } else {
-                    btn.className = 'w-full p-4 rounded-2xl bg-[#16100c] border-2 border-stone-800 text-left flex items-center justify-between opacity-45';
-                }
-            });
-
-            processAnswerResult(chosenOpt.isCorrect, chosenOpt.label);
-        }
-
-        function processAnswerResult(isCorrect, userAnswerText, isTimeout = false) {
-            isAnswered = true;
-            stopTimer();
-            questionCounter++;
-
-            const q = currentQuestion;
-
-            // Update blank in prompt
-            const qBlank = document.getElementById('q-blank');
-            qBlank.textContent = q.correctDisplay;
-            if (isCorrect) {
-                qBlank.className = 'px-4 py-1 rounded-xl bg-emerald-500/20 border-2 border-emerald-500 text-emerald-300 font-extrabold inline-block text-center';
-            } else {
-                qBlank.className = 'px-4 py-1 rounded-xl bg-red-500/20 border-2 border-red-500 text-amber-300 font-extrabold inline-block text-center';
-            }
-
-            // Update Spaced Repetition Weights & Stats
-            stats.total++;
-            if (isCorrect) {
-                stats.correct++;
-                stats.streak++;
-                chordWeights[q.chord.id] = Math.max(5, (chordWeights[q.chord.id] || 10) - 2);
-            } else {
-                stats.streak = 0;
-                // Boost weight so this chord repeats soon!
-                chordWeights[q.chord.id] = Math.min(45, (chordWeights[q.chord.id] || 10) + 18);
-            }
-
-            updateStatsUI();
-
-            // Audio feedback
-            const autoAudio = document.getElementById('auto-audio-toggle').checked;
-            if (autoAudio) {
-                strumChord(q.chord);
-            } else {
-                playFeedbackSound(isCorrect);
-            }
-
-            // Reveal Fretboard Diagram
-            updateDiagramVisibility();
-
-            // Show feedback panel
-            const fbPanel = document.getElementById('feedback-panel');
-            const fbIcon = document.getElementById('feedback-icon');
-            const fbTitle = document.getElementById('feedback-title');
-            const fbDetail = document.getElementById('feedback-detail');
-
-            fbPanel.classList.remove('hidden');
-            if (isCorrect) {
-                fbPanel.className = 'mt-6 p-4 rounded-2xl border bg-emerald-950/50 border-emerald-600/50 flex flex-col sm:flex-row items-center justify-between gap-4';
-                fbIcon.className = 'w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg shrink-0';
-                fbIcon.innerHTML = '<i class="fa-solid fa-check"></i>';
-                fbTitle.className = 'font-bold text-base text-emerald-300';
-                fbTitle.textContent = 'Chính xác tuyệt vời!';
-                fbDetail.textContent = `${q.chord.symbol} là ${q.chord.name} (${q.chord.notes})`;
-            } else {
-                fbPanel.className = 'mt-6 p-4 rounded-2xl border bg-red-950/50 border-red-600/50 flex flex-col sm:flex-row items-center justify-between gap-4';
-                fbIcon.className = 'w-10 h-10 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center text-lg shrink-0';
-                fbIcon.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-                fbTitle.className = 'font-bold text-base text-red-300';
-                fbTitle.textContent = isTimeout ? 'Hết thời gian suy nghĩ!' : `Chưa đúng (Bạn chọn: ${userAnswerText})`;
-                fbDetail.textContent = `Đáp án đúng: ${q.targetText} là ${q.correctDisplay}. Hệ thống sẽ lặp lại câu này sau!`;
-            }
-
-            // Add to history stream
-            historyLog.unshift({
-                num: q.number,
-                target: q.targetText,
-                answer: q.correctDisplay,
-                isCorrect,
-                chordSymbol: q.chord.symbol
-            });
-            if (historyLog.length > 20) historyLog.pop();
-            renderHistoryLog();
-        }
-
-        function updateStatsUI() {
-            document.getElementById('stat-total').textContent = stats.total;
-            document.getElementById('stat-streak').textContent = stats.streak;
-            const acc = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 100;
-            document.getElementById('stat-accuracy').textContent = `${acc}%`;
-        }
-
-        function renderHistoryLog() {
-            const container = document.getElementById('history-list');
-            if (historyLog.length === 0) {
-                container.innerHTML = `<span class="text-xs text-stone-500 italic">Chưa có câu trả lời nào. Hãy bắt đầu câu số 1!</span>`;
-                return;
-            }
-            container.innerHTML = historyLog.map(item => `
-                <div class="shrink-0 px-3 py-2 rounded-xl border text-xs flex items-center gap-2 ${
-                    item.isCorrect 
-                        ? 'bg-emerald-950/30 border-emerald-700/40 text-emerald-200' 
-                        : 'bg-red-950/40 border-red-700/50 text-red-200'
-                }">
-                    <span class="font-mono font-bold text-stone-400">Câu ${item.num}:</span>
-                    <span class="font-bold text-amber-300">${item.target}</span>
-                    <span>là</span>
-                    <span class="font-bold underline">${item.answer}</span>
-                    <i class="fa-solid ${item.isCorrect ? 'fa-circle-check text-emerald-400' : 'fa-circle-xmark text-red-400'}"></i>
-                </div>
-            `).join('');
-        }
-
-        function clearHistory() {
-            historyLog = [];
-            questionCounter = 1;
-            stats = { total: 0, correct: 0, streak: 0 };
-            updateStatsUI();
-            renderHistoryLog();
-            nextQuestion();
-        }
-
-        // --- FRETBOARD DIAGRAM PANEL UPDATES ---
-        function populateDiagramPanel(chord) {
-            document.getElementById('diag-symbol').textContent = chord.symbol;
-            document.getElementById('diag-name').textContent = chord.name;
-            document.getElementById('diag-formula').textContent = `Nốt cấu tạo: ${chord.notes}`;
-            document.getElementById('quiz-svg-holder').innerHTML = generateChordSVG(chord, 210, 240);
-            document.getElementById('diag-fingers').innerHTML = `
-                <div class="font-bold text-amber-400 mb-1"><i class="fa-regular fa-hand-point-right mr-1"></i> Hướng dẫn đặt ngón tay:</div>
-                <p class="leading-relaxed">${chord.guide}</p>
-            `;
-        }
-
-        function updateDiagramVisibility() {
-            const alwaysShow = document.getElementById('always-show-diagram').checked;
-            const mystery = document.getElementById('diagram-mystery');
-            const content = document.getElementById('diagram-content');
-
-            if (isAnswered || alwaysShow) {
-                mystery.classList.add('hidden');
-                content.classList.remove('hidden');
-            } else {
-                mystery.classList.remove('hidden');
-                content.classList.add('hidden');
-            }
-        }
-
-        // --- COUNTDOWN TIMER FOR REFLEX TRAINING ---
-        function updateTimerSetting() {
-            timerSeconds = parseInt(document.getElementById('quiz-timer-setting').value, 10) || 0;
-            resetAndNextQuestion();
-        }
-
-        function startTimerIfEnabled() {
-            const barContainer = document.getElementById('timer-bar-container');
-            const bar = document.getElementById('timer-bar');
-            if (timerSeconds <= 0) {
-                barContainer.classList.add('hidden');
-                return;
-            }
-            barContainer.classList.remove('hidden');
-            timeRemaining = timerSeconds * 1000;
-            const totalMs = timeRemaining;
-            bar.style.width = '100%';
-
-            timerInterval = setInterval(() => {
-                timeRemaining -= 100;
-                const pct = Math.max(0, (timeRemaining / totalMs) * 100);
-                bar.style.width = `${pct}%`;
-
-                if (timeRemaining <= 0) {
-                    stopTimer();
-                    if (!isAnswered) {
-                        processAnswerResult(false, 'Hết giờ', true);
-                    }
-                }
-            }, 100);
-        }
-
-        function stopTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-        }
-
-        // --- FLASHCARDS MODE ---
-        function initFlashcards() {
-            flashcardDeck = [...getActiveChords()];
+        // --- FLASHCARDS MODE FUNCTIONS ---
+        function buildFlashcardDeck() {
+            flashcardDeck = [...getActiveChordPool()];
             fcIndex = 0;
-            isCardFlipped = false;
-            renderCurrentFlashcard();
+            fcFlipped = false;
         }
 
-        function renderCurrentFlashcard() {
-            if (flashcardDeck.length === 0) return;
+        function renderFlashcard() {
+            if (flashcardDeck.length === 0) buildFlashcardDeck();
             const chord = flashcardDeck[fcIndex];
-            isCardFlipped = false;
-            document.getElementById('fc-inner').classList.remove('rotate-y-180');
+            if (!chord) return;
+
+            fcFlipped = false;
+            document.getElementById('fc-inner')?.classList.remove('rotate-y-180');
 
             document.getElementById('fc-counter').textContent = `Thẻ ${fcIndex + 1} / ${flashcardDeck.length}`;
             document.getElementById('fc-front-cat').textContent = chord.categoryLabel;
@@ -2073,114 +2351,103 @@
 
             document.getElementById('fc-back-symbol').textContent = chord.symbol;
             document.getElementById('fc-back-name').textContent = chord.name;
-            document.getElementById('fc-back-notes').textContent = `Nốt cấu tạo: ${chord.notes}`;
+            document.getElementById('fc-back-notes').textContent = `Cấu tạo: ${chord.notes}`;
             document.getElementById('fc-svg-holder').innerHTML = generateChordSVG(chord, 195, 225);
             document.getElementById('fc-back-tip').textContent = chord.guide;
         }
 
         function flipCard() {
-            isCardFlipped = !isCardFlipped;
+            fcFlipped = !fcFlipped;
             const inner = document.getElementById('fc-inner');
-            if (isCardFlipped) {
-                inner.classList.add('rotate-y-180');
-                if (document.getElementById('auto-audio-toggle').checked) {
-                    strumFlashcardChord();
-                }
-            } else {
-                inner.classList.remove('rotate-y-180');
+            if (inner) {
+                inner.classList.toggle('rotate-y-180', fcFlipped);
+            }
+            if (fcFlipped && document.getElementById('auto-audio-toggle')?.checked) {
+                strumFlashcardChord();
             }
         }
 
+        function strumFlashcardChord() {
+            const chord = flashcardDeck[fcIndex];
+            if (chord) strumChord(chord);
+        }
+
         function nextFlashcard() {
+            if (flashcardDeck.length === 0) return;
             fcIndex = (fcIndex + 1) % flashcardDeck.length;
-            renderCurrentFlashcard();
+            renderFlashcard();
         }
 
         function prevFlashcard() {
+            if (flashcardDeck.length === 0) return;
             fcIndex = (fcIndex - 1 + flashcardDeck.length) % flashcardDeck.length;
-            renderCurrentFlashcard();
+            renderFlashcard();
         }
 
         function shuffleFlashcards() {
             flashcardDeck.sort(() => Math.random() - 0.5);
             fcIndex = 0;
-            renderCurrentFlashcard();
+            renderFlashcard();
         }
 
-        function strumFlashcardChord() {
-            if (flashcardDeck[fcIndex]) {
-                strumChord(flashcardDeck[fcIndex]);
-            }
-        }
-
-        // --- DICTIONARY VIEW ---
+        // --- CHORD DICTIONARY FUNCTIONS ---
         function renderDictionary() {
-            const query = normalizeVi(document.getElementById('dict-search').value || '');
-            const queryNoTone = removeVietnameseTones(query);
             const grid = document.getElementById('dictionary-grid');
+            if (!grid) return;
 
+            const query = normalizeVnString(document.getElementById('dict-search')?.value || '');
             const filtered = CHORD_DATABASE.filter(c => {
                 if (!query) return true;
-                const symMatch = c.symbol.toLowerCase().includes(query);
-                const nameNorm = normalizeVi(c.name);
-                const nameMatch = nameNorm.includes(query) || removeVietnameseTones(nameNorm).includes(queryNoTone);
-                return symMatch || nameMatch;
+                return (
+                    c.symbol.toLowerCase().includes(query) ||
+                    c.name.toLowerCase().includes(query) ||
+                    c.acceptedAnswers.some(a => a.includes(query))
+                );
             });
 
             grid.innerHTML = filtered.map(c => `
-                <div class="bg-[#1e1611] border border-amber-900/40 hover:border-amber-600/60 rounded-2xl p-4 flex flex-col items-center justify-between shadow-lg transition">
-                    <div class="w-full flex items-center justify-between mb-2">
-                        <div>
-                            <span class="text-2xl font-extrabold text-amber-400 font-mono">${c.symbol}</span>
-                            <span class="text-stone-400 mx-1">•</span>
-                            <span class="text-base font-bold text-white">${c.name}</span>
-                        </div>
-                        <button onclick="strumChordById('${c.id}')" title="Nghe thử âm thanh" class="w-9 h-9 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 flex items-center justify-center transition">
-                            <i class="fa-solid fa-volume-high"></i>
+                <div class="bg-[#1e1611] border border-amber-900/40 hover:border-amber-600/60 rounded-3xl p-5 flex flex-col items-center justify-between shadow-xl transition">
+                    <div class="w-full flex items-center justify-between border-b border-stone-800 pb-2 mb-2">
+                        <span class="text-xs px-2.5 py-0.5 rounded-full bg-stone-800 text-amber-300 font-medium">${c.categoryLabel}</span>
+                        <button onclick="strumChordById('${c.id}')" class="w-8 h-8 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 flex items-center justify-center transition" title="Nghe âm thanh">
+                            <i class="fa-solid fa-volume-high text-xs"></i>
                         </button>
                     </div>
-                    <div class="my-1">
-                        ${generateChordSVG(c, 185, 215)}
+
+                    <div class="text-center my-1">
+                        <span class="text-3xl font-extrabold text-amber-400 font-mono">${c.symbol}</span>
+                        <h4 class="text-base font-bold text-white mt-0.5">${c.name}</h4>
+                        <p class="text-[11px] text-stone-400 font-mono">${c.notes}</p>
                     </div>
-                    <div class="w-full mt-2 pt-2 border-t border-stone-800 text-[11px] text-stone-300 text-center">
-                        <p class="font-semibold text-amber-300/90 mb-0.5">${c.notes}</p>
-                        <p class="text-stone-400 line-clamp-2">${c.guide}</p>
+
+                    <div onclick="strumChordById('${c.id}')" class="cursor-pointer my-1">
+                        ${generateChordSVG(c, 190, 220)}
+                    </div>
+
+                    <div class="w-full bg-[#140f0b] p-2.5 rounded-xl border border-stone-800 text-[11px] text-stone-300 text-center leading-relaxed mt-2">
+                        ${c.guide}
                     </div>
                 </div>
             `).join('');
         }
 
-        function strumChordById(id) {
-            const chord = CHORD_DATABASE.find(c => c.id === id);
-            if (chord) strumChord(chord);
-        }
-
         // --- KEYBOARD SHORTCUTS ---
         window.addEventListener('keydown', (e) => {
-            // Ignore shortcuts when typing inside input box
-            if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT')) {
+            if (currentTab !== 'quiz') return;
+            const activeTag = document.activeElement?.tagName.toLowerCase();
+            if (activeTag === 'input' || activeTag === 'select' || activeTag === 'textarea') {
                 return;
             }
 
-            if (currentTab === 'quiz') {
-                const mode = document.getElementById('quiz-input-mode').value;
-                if (!isAnswered && mode === 'mcq') {
-                    if (['1', '2', '3', '4'].includes(e.key)) {
-                        e.preventDefault();
-                        submitMCQAnswer(parseInt(e.key, 10) - 1);
-                    }
-                } else if (isAnswered && (e.code === 'Space' || e.code === 'Enter')) {
-                    e.preventDefault();
-                    nextQuestion();
+            if (['1', '2', '3', '4'].includes(e.key)) {
+                const idx = parseInt(e.key, 10) - 1;
+                if (currentQuestion && !currentQuestion.answered) {
+                    selectMcqOption(idx);
                 }
-            } else if (currentTab === 'flashcard') {
-                if (e.code === 'Space') {
-                    e.preventDefault();
-                    flipCard();
-                } else if (e.code === 'ArrowRight') {
-                    nextFlashcard();
-                } else if (e.code === 'ArrowLeft') {
-                    prevFlashcard();
+            } else if (e.code === 'Space') {
+                e.preventDefault();
+                if (currentQuestion && currentQuestion.answered) {
+                    nextQuestion();
                 }
             }
         });
@@ -2188,6 +2455,7 @@
         // Initialize on page load
         window.onload = function() {
             updateCategoryChipsUI();
+            renderMetronomeLEDs();
             nextQuestion();
         };
     </script>
